@@ -121,12 +121,12 @@
 </figcaption>
 </figure>
 
-<p>В целом, выглядит надежно, как швейцарские часы. Поэтому придумали процесс, который назвали <a href="https://en.wikipedia.org/wiki/Data_model">data modeling</a>. Data modeling помогает с определением релевантных для системы данных, связью между этими данными и как данные работают вместе, т.е. создать data model для системы. Главное, что стоит вынести из этой идеи – моделирование можно разбить на три «перспективы»:</p>
+<p>В целом, выглядит надежно, как швейцарские часы. Поэтому придумали процесс, который назвали <a href="https://en.wikipedia.org/wiki/Data_model" target="_blank">data modeling</a>. Data modeling помогает с определением релевантных для системы данных, связью между этими данными и как данные работают вместе, т.е. создать data model для системы. Главное, что стоит вынести из этой идеи – моделирование можно разбить на три «перспективы»:</p>
 
 <ul>
-  <li><a href="https://en.wikipedia.org/wiki/Conceptual_schema">Концептуальная</a> говорит о том, какие данные используются системой и как данные связаны между собой. Т.е. тут о том, что необходимо бизнесу без привязки к конкретной реализации хранения данных в конкретной бд</li>
-  <li><a href="https://en.wikipedia.org/wiki/Logical_schema">Логическая</a> говорит о том, как данные структурируются в приложении. Т.е. берем любой язык описания схемы (будь то SQL, dbml или еще что) и описываем таблицы/колонки/классы/etc.</li>
-  <li><a href="https://en.wikipedia.org/wiki/Physical_schema">Физическая</a> говорит о том, как данные физически храниться будут. Т.е. берем логическое описание и говорим где данные будут находиться физически и как все будет работать в реальности;</li>
+  <li><a href="https://en.wikipedia.org/wiki/Conceptual_schema" target="_blank">Концептуальная</a> говорит о том, какие данные используются системой и как данные связаны между собой. Т.е. тут о том, что необходимо бизнесу без привязки к конкретной реализации хранения данных в конкретной бд</li>
+  <li><a href="https://en.wikipedia.org/wiki/Logical_schema" target="_blank">Логическая</a> говорит о том, как данные структурируются в приложении. Т.е. берем любой язык описания схемы (будь то SQL, dbml или еще что) и описываем таблицы/колонки/классы/etc.</li>
+  <li><a href="https://en.wikipedia.org/wiki/Physical_schema" target="_blank">Физическая</a> говорит о том, как данные физически храниться будут. Т.е. берем логическое описание и говорим где данные будут находиться физически и как все будет работать в реальности;</li>
 </ul>
 
 <figure class="image">
@@ -141,23 +141,23 @@
 
 <h2 id="случай-1-проект-только-в-голове-и-хочется-понять-как-связаны-данные-между-собой">Случай 1: Проект только в голове и хочется понять как связаны данные между собой</h2>
 
-<p>Возможно бизнес с нуля делает систему, либо же нужно разобраться в уже работающей бизнес логике (доменной модели). Для этого придется разбираться с данными: какие элементы, как элементы связаны. Если в этот момент думать о том, где какая таблица будет и что в этой таблице должно находиться – выглядит как доп нагрузка которая усложняет работу. Поэтому для первого случая концептуальное представление предпочтительнее: меньше когнитивная нагрузка, проще работать, можно показать бизнесу не объясняя что это за <a href="https://www.datensen.com/blog/er-diagram/one-to-many-relationships/">вилка</a>.</p>
+<p>Возможно бизнес с нуля делает систему, либо же нужно разобраться в уже работающей бизнес логике (доменной модели). Для этого придется разбираться с данными: какие элементы, как элементы связаны. Если в этот момент думать о том, где какая таблица будет и что в этой таблице должно находиться – выглядит как доп нагрузка которая усложняет работу. Поэтому для первого случая концептуальное представление предпочтительнее: меньше когнитивная нагрузка, проще работать, можно показать бизнесу не объясняя что это за <a href="https://www.datensen.com/blog/er-diagram/one-to-many-relationships/" target="_blank">вилка</a>.</p>
 
 <h3 id="виды-нотаций-концептуальных-моделей">Виды нотаций концептуальных моделей</h3>
 
 <p>Тут список может быть большой, опишу только то, что сам знаю и видел. Подробно на каждой нотации останавливаться не буду, оставлю это на самостоятельное изучение.</p>
 
 <ul>
-  <li><a href="https://studme.org/77224/informatika/notatsiya_idef">Нотация IDEF 1х</a></li>
-  <li><a href="https://studme.org/77225/informatika/notatsiya_uml">PlantUml</a>, тут используется <a href="https://en.wikipedia.org/wiki/Class_diagram">class diagram</a>, что сомнительно, но для общего развития пусть будет.</li>
-  <li>Cтоит упомянуть <a href="http://www.modelsphere.com/org/index.html">Open ModelSphere</a>, это oss инструмент, который помогает с моделированием данных не только концептуально, но и логически/физически
+  <li><a href="https://studme.org/77224/informatika/notatsiya_idef" target="_blank">Нотация IDEF 1х</a></li>
+  <li><a href="https://studme.org/77225/informatika/notatsiya_uml" target="_blank">PlantUml</a>, тут используется <a href="https://en.wikipedia.org/wiki/Class_diagram" target="_blank">class diagram</a>, что сомнительно, но для общего развития пусть будет.</li>
+  <li>Cтоит упомянуть <a href="http://www.modelsphere.com/org/index.html" target="_blank">Open ModelSphere</a>, это oss инструмент, который помогает с моделированием данных не только концептуально, но и логически/физически
  
 Отдельно хочется рассказать еще о двух нотациях:</li>
 </ul>
 
-<p>Первая нотация – <a href="https://en.wikipedia.org/wiki/Entity–relationship_model">ER model</a> (иногда встречается как <a href="https://studme.org/77222/informatika/notatsiya_pitera_chena">нотация Питера Чена</a>) и тут важно не путать с ER diagram. Модель создана Питером Ченом в 1976 году для абстрактного описания данных. При этом, модель предоставляет абстракции для концептуального/логического/физического моделирования. Интересный факт: эта одна из нотаций, которые повлияли на UML.</p>
+<p>Первая нотация – <a href="https://en.wikipedia.org/wiki/Entity–relationship_model" target="_blank">ER model</a> (иногда встречается как <a href="https://studme.org/77222/informatika/notatsiya_pitera_chena" target="_blank">нотация Питера Чена</a>) и тут важно не путать с ER diagram. Модель создана Питером Ченом в 1976 году для абстрактного описания данных. При этом, модель предоставляет абстракции для концептуального/логического/физического моделирования. Интересный факт: эта одна из нотаций, которые повлияли на UML.</p>
 
-<p>Вторая – <a href="https://martinfowler.com/books/ap.html">нотация концептуальной модели Мартина Фаулера из книги</a>, о которой преступно мало знают.</p>
+<p>Вторая – <a href="https://martinfowler.com/books/ap.html" target="_blank">нотация концептуальной модели Мартина Фаулера из книги</a>, о которой преступно мало знают.</p>
 
 <figure class="image">
   <img src="/public/images/questions/2024-08-01-data-model/martin-fowler-notation.jpg" alt="dbml: code and visualisation" />
@@ -169,7 +169,7 @@
 
 <h3 id="что-сам-использую">Что сам использую</h3>
 
-<p><a href="https://tough-roadway-bb5.notion.site/1-1-6adfeb2e07eb4269b5966ffb742d7fad#34413c7cc27b4e1da6ee31177875b93b">Я использую сильно упрощенную нотацию, состоящую только из квадратов и стрелок</a>, которую сам и «придумал». При этом, вместо использования сложных видов стрелок, подписываю вид связи который нужен (<code class="language-plaintext highlighter-rouge">has_one</code>, <code class="language-plaintext highlighter-rouge">has_many</code>, <code class="language-plaintext highlighter-rouge">optional_has_one/many</code>, <code class="language-plaintext highlighter-rouge">many_to_many</code>). Плюс использую цветовое обозначение для данных, которые используются в разных контекстах.</p>
+<p><a href="https://tough-roadway-bb5.notion.site/1-1-6adfeb2e07eb4269b5966ffb742d7fad#34413c7cc27b4e1da6ee31177875b93b" target="_blank">Я использую сильно упрощенную нотацию, состоящую только из квадратов и стрелок</a>, которую сам и «придумал». При этом, вместо использования сложных видов стрелок, подписываю вид связи который нужен (<code class="language-plaintext highlighter-rouge">has_one</code>, <code class="language-plaintext highlighter-rouge">has_many</code>, <code class="language-plaintext highlighter-rouge">optional_has_one/many</code>, <code class="language-plaintext highlighter-rouge">many_to_many</code>). Плюс использую цветовое обозначение для данных, которые используются в разных контекстах.</p>
 
 <figure class="image">
   <img src="/public/images/questions/2024-08-01-data-model/data-model-example.jpg" alt="dbml: code and visualisation" />
@@ -202,7 +202,7 @@
 
 <p>В данном случае, если нужна концептуальная модель – инструментов не знаю, к сожалению. Поэтому, для проектов с реализованной схемой бд, рисую концептуальные модели «руками».</p>
 
-<p>Но если хватит логической модели, можно найти решение. Из того что знаю – ER diagram (которая, является подмножеством ER model). Существует новомодный dbml, который тоже использовал. Еще стоит упомянуть <a href="https://studme.org/77223/informatika/notatsiya_martina_crows_foot">Нотацию Мартина (Crow’s Foot)</a>, но в живую не наблюдал. Если знаете другие варианты – буду рад комментариями, ибо самому интересно, а быстро нагуглить альтернативы не вышло.</p>
+<p>Но если хватит логической модели, можно найти решение. Из того что знаю – ER diagram (которая, является подмножеством ER model). Существует новомодный dbml, который тоже использовал. Еще стоит упомянуть <a href="https://studme.org/77223/informatika/notatsiya_martina_crows_foot" target="_blank">Нотацию Мартина (Crow’s Foot)</a>, но в живую не наблюдал. Если знаете другие варианты – буду рад комментариями, ибо самому интересно, а быстро нагуглить альтернативы не вышло.</p>
 
 <p>Для генерации «картинки» я использую следующие подходы:</p>
 
@@ -210,8 +210,8 @@
 
 <p>В эту секцию входят:</p>
 <ul>
-  <li>инструменты diagram as a code: <a href="https://graphviz.org/Gallery/neato/ER.html">graphiz</a>, <a href="https://mermaid.js.org/syntax/entityRelationshipDiagram.html">mermaid</a></li>
-  <li>библиотеки для разных языков (<a href="https://github.com/drivendataorg/erdantic">python</a>, <a href="https://github.com/voormedia/rails-erd">ruby</a>, <a href="https://github.com/fuelen/ecto_erd">elixir/ecto</a>, <a href="https://github.com/gmarik/go-erd">golang</a>, <a href="https://www.npmjs.com/package/prisma-erd-generator">js/prisma</a>, etc) которые под капотом используют graphiz.</li>
+  <li>инструменты diagram as a code: <a href="https://graphviz.org/Gallery/neato/ER.html" target="_blank">graphiz</a>, <a href="https://mermaid.js.org/syntax/entityRelationshipDiagram.html" target="_blank">mermaid</a></li>
+  <li>библиотеки для разных языков (<a href="https://github.com/drivendataorg/erdantic" target="_blank">python</a>, <a href="https://github.com/voormedia/rails-erd" target="_blank">ruby</a>, <a href="https://github.com/fuelen/ecto_erd" target="_blank">elixir/ecto</a>, <a href="https://github.com/gmarik/go-erd" target="_blank">golang</a>, <a href="https://www.npmjs.com/package/prisma-erd-generator" target="_blank">js/prisma</a>, etc) которые под капотом используют graphiz.</li>
 </ul>
 
 <p>С вероятностью в 99% там будет ERD. А подход подойдет в двух случаях:</p>
@@ -239,9 +239,9 @@
 
 <h3 id="генерация-erd-в-инструментах-для-диаграм">Генерация ERD в инструментах для диаграм</h3>
 
-<p>Lucidchart предоставляет <a href="https://www.lucidchart.com/pages/examples/er-diagram-tool">инструмент, который генерирует ERD по загруженной схеме бд</a>. Дальше получаете диаграмму, в которой можно двигать элементы, стрелки, добавлять новые элементы, менять цвета и делать что угодно.</p>
+<p>Lucidchart предоставляет <a href="https://www.lucidchart.com/pages/examples/er-diagram-tool" target="_blank">инструмент, который генерирует ERD по загруженной схеме бд</a>. Дальше получаете диаграмму, в которой можно двигать элементы, стрелки, добавлять новые элементы, менять цвета и делать что угодно.</p>
 
-<p>Draw.io реализовали <a href="https://www.drawio.com/doc/faq/sql-plugin">аналогичный инструмент</a>. Только для работы придется вставлять SQL код. После, с полученной схемой, также можно производит манипуляции с диаграммой.</p>
+<p>Draw.io реализовали <a href="https://www.drawio.com/doc/faq/sql-plugin" target="_blank">аналогичный инструмент</a>. Только для работы придется вставлять SQL код. После, с полученной схемой, также можно производит манипуляции с диаграммой.</p>
 
 <figure class="image">
   <img src="/public/images/questions/2024-08-01-data-model/erd-bad-example.jpg" alt="dbml: code and visualisation" />
@@ -266,19 +266,19 @@
   <li>Шарить модель может быть проблемно, особенно если используете lucid и душит жаба платить за кучу людей (но для конфлюенса был плагин);</li>
 </ul>
 
-<p>Заметка: помните, что генераторы ERD присутствуют не везде. Например, <a href="https://miro.com/diagramming/er-diagram/">в miro нет ERD генераторов</a>, вместо этого, получите только элементы для того, чтобы самостоятельно рисовать модель. </p>
+<p>Заметка: помните, что генераторы ERD присутствуют не везде. Например, <a href="https://miro.com/diagramming/er-diagram/" target="_blank">в miro нет ERD генераторов</a>, вместо этого, получите только элементы для того, чтобы самостоятельно рисовать модель. </p>
 
 <h3 id="использование-dbml">Использование dbml</h3>
 
-<p>Персональное открытие прошлого года. Вместо рассказа, <a href="https://dbdiagram.io/d">лучше посмотреть самостоятельно</a> (в верхнем левом углу, где лого, можно загрузить advanced sample, который использовался в примерах в начале статьи).</p>
+<p>Персональное открытие прошлого года. Вместо рассказа, <a href="https://dbdiagram.io/d" target="_blank">лучше посмотреть самостоятельно</a> (в верхнем левом углу, где лого, можно загрузить advanced sample, который использовался в примерах в начале статьи).</p>
 
-<p>При этом, так как dbml схема типизирована, можно написать конвертер из erd в dbml и получить генерацию схемы из кода (делал так для <a href="https://github.com/voormedia/rails-erd">erd-rails</a> генератора). После, вставляем схему в редактор и изучаем схему баз данных.</p>
+<p>При этом, так как dbml схема типизирована, можно написать конвертер из erd в dbml и получить генерацию схемы из кода (делал так для <a href="https://github.com/voormedia/rails-erd" target="_blank">erd-rails</a> генератора). После, вставляем схему в редактор и изучаем схему баз данных.</p>
 
 <p><strong>Плюсы:</strong></p>
 
 <ul>
   <li>Из-за динамичности, можно двигать элементы, что работает с большими схемами;</li>
-  <li>Diagram as a code. Можно <a href="https://dbml.dbdiagram.io/cli#convert--a-sql-file-to-dbml">генерировать dbml схему по SQL</a>, присутствует <a href="https://github.com/stepanic/parse-server-SCHEMA-to-DBML">библиотека для монги (не проверял)</a>, <a href="https://github.com/hamedsj/DbmlForDjango">для джанги</a> библиотека существует;</li>
+  <li>Diagram as a code. Можно <a href="https://dbml.dbdiagram.io/cli#convert--a-sql-file-to-dbml" target="_blank">генерировать dbml схему по SQL</a>, присутствует <a href="https://github.com/stepanic/parse-server-SCHEMA-to-DBML" target="_blank">библиотека для монги (не проверял)</a>, <a href="https://github.com/hamedsj/DbmlForDjango" target="_blank">для джанги</a> библиотека существует;</li>
   <li>Предпросмотр работает в браузере, не надо ничего ставить локально;</li>
   <li>Так как генерация из кода – можно избежать ситуации, когда связи не отображаются, так как связей нет в схеме бд, но есть на уровне кода;</li>
 </ul>
@@ -293,7 +293,7 @@
 
 <h3 id="генерация-из-редактораide">Генерация из редактора/IDE</h3>
 
-<p>Так как всю жизнь просидел в vim, без возможности выхода, то особо ничего сказать о генерации схем из редактора и инструментов для этого. Знаю, что инструменты существуют и пользователи jetbrains <a href="https://www.jetbrains.com/help/datagrip/creating-diagrams.html#db_diagrams">могут смотреть на схему не выходя из редактора</a>. Лучше погуглить самостоятельно.</p>
+<p>Так как всю жизнь просидел в vim, без возможности выхода, то особо ничего сказать о генерации схем из редактора и инструментов для этого. Знаю, что инструменты существуют и пользователи jetbrains <a href="https://www.jetbrains.com/help/datagrip/creating-diagrams.html#db_diagrams" target="_blank">могут смотреть на схему не выходя из редактора</a>. Лучше погуглить самостоятельно.</p>
 
 <h2 id="итоги">Итоги</h2>
 
@@ -312,21 +312,30 @@
 <p>Если тема data model заинтересовала, собрал четыре ссылки, по которым можно погрузиться в тему глубже. </p>
 
 <ul>
-  <li>[en] В статье не рассказывал про archimate. Хотя там так же <a href="https://eaprincipals.com/data-modeling-with-archi/">можно сделать нужную data model</a>. Если используете archi - ничего нового не узнаете, скорее всего;</li>
-  <li>[en] <a href="https://www.mongodb.com/basics/data-modeling">Статья из блога mongoDB, в которой рассказывается data modelling</a>. В тексте найдете описание подхода, виды представлений, описание процесса, советы и еще больше инструментов и так далее;</li>
-  <li>[en] <a href="https://www.thoughtspot.com/data-trends/data-modeling/conceptual-data-model-examples">Статья о том, как сделать концептуальную модель</a>, какие виды есть и в чем ее преимущества;</li>
-  <li>[en] Серия статей о визуализации бд. По <a href="https://minimalmodeling.substack.com/p/visual-language-and-database-visualization">ссылке третья часть</a>, где упоминаются разные приложения для визуализации: MySQL Workbench,  Anchor,  TLDraw и Arrows.app;</li>
+  <li>[en] В статье не рассказывал про archimate. Хотя там так же <a href="https://eaprincipals.com/data-modeling-with-archi/" target="_blank">можно сделать нужную data model</a>. Если используете archi - ничего нового не узнаете, скорее всего;</li>
+  <li>[en] <a href="https://www.mongodb.com/basics/data-modeling" target="_blank">Статья из блога mongoDB, в которой рассказывается data modelling</a>. В тексте найдете описание подхода, виды представлений, описание процесса, советы и еще больше инструментов и так далее;</li>
+  <li>[en] <a href="https://www.thoughtspot.com/data-trends/data-modeling/conceptual-data-model-examples" target="_blank">Статья о том, как сделать концептуальную модель</a>, какие виды есть и в чем ее преимущества;</li>
+  <li>[en] Серия статей о визуализации бд. По <a href="https://minimalmodeling.substack.com/p/visual-language-and-database-visualization" target="_blank">ссылке третья часть</a>, где упоминаются разные приложения для визуализации: MySQL Workbench,  Anchor,  TLDraw и Arrows.app;</li>
 </ul>
 
 
   <hr>
 
-  <p>Нашли опечатку или ошибку? Буду рад <a href="https://github.com/2pegramming/2pegramming.github.io/tree/master/questions">PR-у</a>.</p>
+  <p>Нашли опечатку или ошибку? Буду рад <a href="https://github.com/2pegramming/2pegramming.github.io/tree/master/questions" target="_blank">PR-у</a>.</p>
 </div>
 
 <!-- <div class="related"> -->
 <!--   <h2>Related Posts</h2> -->
 <!--   <ul class="related&#45;posts"> -->
+<!--      -->
+<!--       <li> -->
+<!--         <h3> -->
+<!--           <a href="/questions/how-to-be-sure-about-technical-decision/"> -->
+<!--             Как убедиться, что техническое решение нужно? -->
+<!--             <small>27 Sep 2024</small> -->
+<!--           </a> -->
+<!--         </h3> -->
+<!--       </li> -->
 <!--      -->
 <!--       <li> -->
 <!--         <h3> -->
@@ -342,15 +351,6 @@
 <!--           <a href="/questions/make-events-small/"> -->
 <!--             Как уменьшить размер события в асинхронных коммуникациях -->
 <!--             <small>30 Aug 2024</small> -->
-<!--           </a> -->
-<!--         </h3> -->
-<!--       </li> -->
-<!--      -->
-<!--       <li> -->
-<!--         <h3> -->
-<!--           <a href="/questions/graph-as-a-project-managment-tool/"> -->
-<!--             Как слежу за большими проектами -->
-<!--             <small>16 Aug 2024</small> -->
 <!--           </a> -->
 <!--         </h3> -->
 <!--       </li> -->
