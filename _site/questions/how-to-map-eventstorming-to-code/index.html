@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Как перевести EventStorming модель в код &middot; 
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/syntax.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript" >
+     (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+     m[i].l=1*new Date();
+     for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+     k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+     (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+     ym(97974293, "init", {
+          clickmap:true,
+          trackLinks:true,
+          accurateTrackBounce:true
+     });
+  </script>
+  <noscript><div><img src="https://mc.yandex.ru/watch/97974293" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+  <!-- /Yandex.Metrika counter -->
+</head>
+
+
+  <body class="theme-base-00">
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="/">
+          
+        </a>
+      </h1>
+      <p class="lead"><a href="https://t.me/pepegramming" target="_blank">2pegramming</a></p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="/">Главная</a>
+
+      <a class="sidebar-nav-item" href="/blogposts">Посты</a>
+      <!-- <a class="sidebar&#45;nav&#45;item" href="/streams">Стримы</a> -->
+      <!-- <a class="sidebar&#45;nav&#45;item" href="/questions">Ответы на вопросы</a> -->
+      <a class="sidebar-nav-item" href="https://goo.gl/forms/iUd1Gufq6WnTsaO62">Обратная связь</a>
+      <a class="sidebar-nav-item" href="http://github.com/2pegramming">GitHub</a>
+    </nav>
+
+    <p>&copy; 2024. All rights reserved.</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="question">
+  <h1 class="question-title">Как перевести EventStorming модель в код</h1>
+  <span class="question-date">11 Oct 2024</span>
+
+  <div class="message">
+    <p>Этот пост является ответом на вопрос из канала <a href="https://t.me/pepegramming/">pepegramming</a>. Если увидите неточность или захотите что-то добавить – буду рад комментариями в канале.</p>
+    <p>Если нашли опечатку – <a href="https://github.com/2pegramming/2pegramming.github.io/tree/master/questions/_posts">можно отправить PR с исправлениями</a></p>
+  </div>
+
+  <hr>
+
+  <ul><li><a href="#вопрос">Вопрос</a></li><li><a href="#что-еще-за-eventstorming">Что еще за EventStorming</a></li><li><a href="#мапим-eventstorming-на-код">Мапим EventStorming на код</a><ul><li><a href="#commands">Commands</a></li><li><a href="#events">Events</a><ul><li><a href="#ситуация-1-когда-весь-код-в-монолите">Ситуация 1: Когда весь код в монолите</a></li><li><a href="#ситуация-2-когда-между-сервисами-асинхронное-событийное-взаимодействие">Ситуация 2: Когда между сервисами асинхронное событийное взаимодействие</a></li><li><a href="#ситуация-3-когда-между-сервисами-синхронное-request-response-взаимодействие">Ситуация 3: Когда между сервисами синхронное request-response взаимодействие</a></li></ul></li><li><a href="#actors">Actors</a></li><li><a href="#policies">Policies</a><ul><li><a href="#ситуация-1-когда-полиси-реализуется-вне-команды">Ситуация 1: Когда полиси реализуется вне команды</a></li><li><a href="#ситуация-12-когда-система-распределенная">Ситуация 1.2: Когда система распределенная</a></li><li><a href="#ситуация-2-когда-полиси-реализуется-в-команде">Ситуация 2: Когда полиси реализуется в команде</a></li></ul></li><li><a href="#external-systems">External systems</a></li><li><a href="#read-models">Read models</a><ul><li><a href="#ситуация-1-когда-рид-модель-нужна-в-монолите-и-данных-из-события-хватает">Ситуация 1: Когда рид модель нужна в монолите и данных из события хватает</a></li><li><a href="#ситуация-2-когда-рид-модель-нужна-в-монолите-но-данных-не-хватает">Ситуация 2: Когда рид модель нужна в монолите, но данных не хватает</a></li><li><a href="#ситуация-3-когда-данные-для-рид-модели-нужны-в-другом-сервисе">Ситуация 3: Когда данные для рид модели нужны в другом сервисе</a><ul><li><a href="#request-response">Request-response</a></li><li><a href="#event-driven">Event-driven</a></li><li><a href="#common-data">Common data</a></li></ul></li></ul></li></ul></li><li><a href="#варианты-реализации-в-других-подходах">Варианты реализации в других подходах</a><ul><li><a href="#генерация-кода-по-es-модели">Генерация кода по ES модели</a></li><li><a href="#mvc">MVC</a></li><li><a href="#clean-architecture">Clean architecture</a></li><li><a href="#graphql">GraphQL</a></li><li><a href="#domain-model-pattern">Domain model pattern</a></li></ul></li><li><a href="#бонус-тестирование">Бонус: тестирование</a></li><li><a href="#итоги">Итоги</a></li><li><a href="#доп-ссылки">Доп ссылки</a></li></ul>
+
+  <h2 id="вопрос">Вопрос</h2>
+
+<div class="question-text">
+  <blockquote>
+    <p>Сделали EventStorming модель, а дальше ступор. Не понимаю как стикеры представить в коде. Пока выглядит так, что делаю двойную работу. Как выйти из тупика?</p>
+  </blockquote>
+</div>
+
+<p>На данный вопрос можно было бы ответить одним предложением: «берем команды и события, переводим их в тест-кейсы и «болванки» с бизнес логикой, по полученным тест кейсам заполняем код «болванок», катим в прод». Но так как вопрос задают часто и абстрактный ответ не подойдет, постараюсь подробно описать как перевести Event Storming (далее ES) в код, какую пользу можно получить и как модель помогает в тестах.</p>
+
+<p>Текст получился дискуссионный, так как не встречал «канона» и не знаю «как правильно». Поэтому ответ начну с длинного дисклеймера.</p>
+
+<blockquote>
+  <p>В посте ниже будет пример того, как сам маплю модель на код. Поэтому, не факт, что описанный подход будет полезен, но постараюсь также пофантазировать, как это можно сделать в clean architecture, MVC фреймворках, приложениях с GraphQL и расскажу куда смотреть, если хотите каноничный <a href="https://martinfowler.com/eaaCatalog/domainModel.html" target="_blank">domain model pattern</a>. 
+ 
+Допускаю, что перегнул с детальностью и повторением одного и того же в ответе, но решил, что лучше подробно и с примерами, чем «берете стикеры и пишете код» или «вот гитхаб, смотрите сами».
+ 
+Держите в голове, что ответ писался для того, чтобы донести 3 главные мысли:
+ </p>
+  <ol>
+    <li>Модель помогает не только при использовании <a href="https://martinfowler.com/eaaCatalog/domainModel.html" target="_blank">domain model паттерна</a> в коде (это который про value objects, entity, aggregates), но в и  других подходах, будь то MVC, использование сервис объектов, функциональные подходы и так далее;</li>
+    <li>Если уже используете ES – воспользуйтесь знаниями, добытыми из моделирования, вместо того, чтобы делать бизнес логику по своему, используя самостоятельно придуманные термины. Благодаря этому получите ubiquitous language о котором столько говорят и пишут;</li>
+    <li>Описанный подход стоит воспринимать как один из вариантов написания кода. Тестом можно вдохновиться, если не понимаете с чего начать. При этом, допускаю, что у вас может быт  другое представление о том, как реализация ES модели должна выглядеть – давайте обсуждать. Либо кидайте примеры с гитхаба, постараюсь сделать отдельную секцию с другими способами реализации;
+ 
+Еще одно уточнение – примеры будут на псевдокоде <a href="https://www.ruby-lang.org/en/" target="_blank">ruby</a>, который постараюсь упростить и не показывать никакой сложной или специфичной бизнес логики или уникальных деталей из языка/фреймворков. Это сделано, чтобы донести идею, а не написать идеальное приложение. Если возникнут вопросы или недопонимание – тоже пишите. А если захотите сделать примеры под другие языки – буду только рад и добавлю больше примеров в ответ.</li>
+  </ol>
+</blockquote>
+
+<h2 id="что-еще-за-eventstorming">Что еще за EventStorming</h2>
+
+<p>Данная часть нужна для тех, кто в первый раз слышит про EventStorming. Если знаете что это такое и (или) применяете подход в работе – можно пропустить, тут только краткая справка, без откровений.</p>
+
+<p>EventStorming <a href="https://blog.avanscoperta.it/2014/02/12/introducing-event-storming/" target="_blank">придумал Альберто Брандолини в 2012–2014 годах</a>. Это воркшоп, идея которого заключается в том, чтобы запереть всех сотрудников, которые работают над системой, в одной комнате, дать им инструмент для выгрузки знаний из головы. А на выходе получить схематичное описание поведения системы, с которым согласен каждый участник данного мероприятия.</p>
+
+<p>Важно уточнить, что это не технический воркшоп, тут важно определить доменную модель и поведение системы, а не обсудить в каком месте будет использоваться adapter паттерн или event sourcing.</p>
+
+<p>Краеугольный камень модели из воркшопа – события, которые появляются в системе. Под событиями подразумевают результат любого действия, т.е. это глагол в прошедшем времени, которое появляется как результат выполнения системой бизнес команды, которую запускает либо актор, либо система автоматически реагирует на события запуском команд по условию. </p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-concept-explonation.jpg" alt="" />
+  <figcaption><p>Модель того, как работает система в терминах EventStorming</p>
+</figcaption>
+</figure>
+
+<p>Кроме этого, в ES выделяют три уровня детализации системы: <strong>big picture</strong>,  <strong>process modeling</strong> и <strong>software design</strong>. В ответе остановлюсь на process modelling.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/event-storming-levels.jpg" alt="" />
+  <figcaption><p>Уровни детализации в ES, в каждом используются свой набор стикеров и у каждого уровня собственные цели</p>
+</figcaption>
+</figure>
+
+<p>Благодаря тому, что process modelling является графической визуализацией бизнес процессов, а не технических алгоритмов или кусков реализации в коде, EventStorming может помочь с последующей реализацией бизнес процессов в коде. Либо же сгенерировать код из модели, о чем тоже поговорим. А получив набор изолированных commands и queries – можно изолировать код, тем самым улучшить maintainability/modifiability и testability кодовой базы.</p>
+
+<p>Если хотите подробнее разобраться как проводить ES, то на выбор либо <a href="https://www.eventstorming.com/book/" target="_blank">книга Альберто (не дописанная)</a>, либо <a href="https://tough-roadway-bb5.notion.site/1-1-6adfeb2e07eb4269b5966ffb742d7fad#3ed1be8a4adf4dbc8320c00db41eac42" target="_blank">первый урок курса, который писал</a>, либо <a href="https://habr.com/ru/companies/oleg-bunin/articles/537862/" target="_blank">ссылки из интернета</a>, либо гугл.</p>
+
+<h2 id="мапим-eventstorming-на-код">Мапим EventStorming на код</h2>
+
+<p>В качестве примера рассмотрим кусок выдуманной ES модели, который описывает часть интернет магазина: работу с корзиной, автоматическое пополнение склада, отчеты и часть работы сборщиков.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example.jpg" alt="" />
+  <figcaption><p>Пример с магазином, в котором собрал стикеры из process modelling</p>
+</figcaption>
+</figure>
+
+<p>А в качестве структуры приложения буду использовать аналог layered стиля, состоящий из трех слоев:</p>
+
+<ul>
+  <li>Транспортный слой, который является либо интерфейсом для различных видов клиентов (API/web/telegram/WS/etc), либо background processing (у рубистов это <a href="https://github.com/sidekiq/sidekiq" target="_blank">sidekiq</a>, у питонистов с натяжкой <a href="https://github.com/celery/celery" target="_blank">celery</a> и так далее), либо консьюмером для брокера сообщений;</li>
+  <li>Слой с логикой, в которой будет реализация бизнес логики которую смоделировали в ES;</li>
+  <li>Persistence слой, в котором кроме бд могут быть relations из datamapper паттерна или иные абстракции связанные с персистенсом;</li>
+</ul>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/software-arch-breif-view.jpg" alt="" />
+  <figcaption><p>Три слоя, каждый слой отвечает за свою часть работы приложения. Транспортный вызывает контексты в которых реализована бизнес логика из ES. Например API для админки и для клиентов будут обращаться в одинаковый набор контекстов</p>
+</figcaption>
+</figure>
+
+<p>В контексте изначального вопроса, о маппинге ES на код, интересует первые два слоя: логика и транспорт, при этом транспорт это не обязательно http запросы. Как пример: добавление товара в корзину можно  как через веб интерфейс, так и через HTTP API, либо через tg бота, либо вообще с помощью CLI. Из этого следует, что одну и туже бизнесовую логику, акторы могут вызвать используя подходящие по контексту виды транспорта. Т.е. описанная модель в ES будет работать для любых проектов: что тг ботов, что веба, что CLI инструментов, что асинхронных систем, что для вебсокетов и так далее.</p>
+
+<h3 id="commands">Commands</h3>
+
+<blockquote>
+  <p>Дальше по тексту будет использоваться термин команда, который в коде, в зависимости от языка и экосистемы может иметь другие значения. Для объяснения буду считать что бизнесовая команда мапится на бизнес логику, например сервис объект/операцию/юзкейс/команду.</p>
+</blockquote>
+
+<p>Самое очевидное – команды. Это действия, совершает актор над системой, либо система автоматически выполняет как реакция на то, что произошло.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-only-commands.jpg" alt="" />
+  <figcaption><p>В нашем примере пять команд, четыре из которых вызываются двумя акторами, а одна команда автоматически срабатывает при успешном чекауте</p>
+</figcaption>
+</figure>
+
+<p>Благодаря ES можно сразу назвать каждую из команд используя «общий язык» (Ubiquitous Language) найденный в процессе работы над EventStorming.</p>
+
+<ul>
+  <li>Названия команд вокруг заказа, которые вызывает покупатель: <code class="language-plaintext highlighter-rouge">AddItemToOrder</code>, <code class="language-plaintext highlighter-rouge">RemoveItemFromOrder</code> и <code class="language-plaintext highlighter-rouge">Checkout</code>;</li>
+  <li>Название команды пикера, который отмечает сборку заказов: <code class="language-plaintext highlighter-rouge">CollectOrder</code>;</li>
+  <li>Название команды, которая автоматически заказывает недостающие продукты на склад: <code class="language-plaintext highlighter-rouge">RequestMissingProduct</code>;</li>
+</ul>
+
+<p>Получив название для функции или объекта, делаем «болванку», в которой реализуется алгоритм действия.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># название контекста</span>
+<span class="k">class</span> <span class="nc">ContextName</span>
+  <span class="k">class</span> <span class="nc">Command</span>
+    <span class="c1"># название команды, которую мы обнаружили в ES модели</span>
+    <span class="k">class</span> <span class="nc">AddItemToCart</span>
+      <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="c1"># тут условная реализация алгоритма добавления продукта в заказ</span>
+        <span class="n">order_repo</span><span class="p">.</span><span class="nf">add_product</span><span class="p">(</span><span class="n">order_id</span><span class="p">,</span> <span class="n">product_id</span><span class="p">,</span> <span class="n">quantity</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h3 id="events">Events</h3>
+
+<p>В случае реализации события в коде, можно предположить, что событием будет результат, который вернула команда. Т.е. если актор выполнил чекаут, получим заказ, который оформили:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">command</span> <span class="o">=</span> <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">Checkout</span><span class="p">.</span><span class="nf">new</span>
+<span class="c1"># результат команды и будет событием, которое мы отобразили в ES</span>
+<span class="n">checked_out_order</span> <span class="o">=</span> <span class="n">command</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Если на полученное событие система не реагирует автоматически, то либо возвращаем результат актору как read model, либо делаем что надо.</p>
+
+<p>Но, возникают ситуации, когда система реагирует на событие автоматическим запуском другой команды. В данном случае придется рассмотреть три случая:</p>
+
+<ul>
+  <li>действие происходит в одном процессе (монолите) и можно вызвать команду на прямую;</li>
+  <li>действие происходит в двух сервисах, но связь асинхронная;</li>
+  <li>действие происходит в двух сервисах, но связь синхронная request-response;</li>
+</ul>
+
+<p>Рассмотрим каждый на примере чекаута и дозаказа товаров.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example-chain-of-events.jpg" alt="" />
+  <figcaption><p>Кусок модели, на котором рассмотрим как система автоматически запустит команду как реакцию на событие. О полиси поговорим в следующей части ответа</p>
+</figcaption>
+</figure>
+
+<h4 id="ситуация-1-когда-весь-код-в-монолите">Ситуация 1: Когда весь код в монолите</h4>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example-chain-of-events-monolith.jpg" alt="" />
+  <figcaption><p>Две команды в одном монолите, общаются прямым вызовом</p>
+</figcaption>
+</figure>
+
+<p>Тут важно определить что за «событие» вернула команда. Если оформление не получилось, возвращаем результат покупателю, а если заказ оформился - вызываем другую команду из нужного контекста:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">command</span> <span class="o">=</span> <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">Checkout</span><span class="p">.</span><span class="nf">new</span>
+<span class="c1"># результат команды и будет событием, которое мы отобразили в ES</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">command</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+<span class="c1"># получив результат, разбираемся, что это за "событие" и в случае успешного чекаута </span>
+
+<span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">order_checked_out?</span>
+  <span class="c1"># если результат "Заказ оформлен" - мы вызываем следующую команду автоматически</span>
+  <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">RequestMissingProduct</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">checked_out_order</span><span class="p">)</span>
+<span class="k">else</span>
+  <span class="c1"># если результат "Заказ не оформлен" - ничего не делаем</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h4 id="ситуация-2-когда-между-сервисами-асинхронное-событийное-взаимодействие">Ситуация 2: Когда между сервисами асинхронное событийное взаимодействие</h4>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example-chain-of-events-async.jpg" alt="" />
+  <figcaption><p>Каждая команда в своем сервисе, а связь между ними асинхронная</p>
+</figcaption>
+</figure>
+
+<p>Во первых, получаем бонус: берем готовое название события, которое будет продьюситься из первого сервиса во второй (<code class="language-plaintext highlighter-rouge">OderCheckedOut</code>). И, <a href="https://pepegramming.site/questions/make-events-small/#хочу-короткие-сообщения-потому-что-так-принято" target="_blank">решив какой размер события нужен</a>, отправляем событие в брокер.</p>
+
+<p>Во вторых, коммуникация будет похожа на то, что было в первой ситуации, только вместо прямого вызова команды - отправляем событие в брокер, а из транспортного слоя консьюмера вызываем нужную команду:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># В сервисе продьюсере</span>
+<span class="k">if</span> <span class="n">checked_out_order</span><span class="p">.</span><span class="nf">success?</span>
+  <span class="c1"># если результат "Заказ оформлен" - мы отправляем событие в брокер, после чего оно консьюмится и вызывается следующая команда</span>
+  <span class="n">broker</span><span class="p">.</span><span class="nf">produce</span><span class="p">(</span>
+    <span class="ss">topic: </span><span class="s1">'shop'</span><span class="p">,</span>
+    <span class="ss">event_name: </span><span class="s1">'OderCheckedOut'</span><span class="p">,</span>
+    <span class="ss">event_data: </span><span class="n">checked_out_order</span>
+  <span class="p">)</span>
+<span class="k">else</span>
+  <span class="c1"># если результат "Заказ не оформлен" - ничего не делаем</span>
+<span class="k">end</span>
+
+<span class="c1"># В сервисе консьюмере</span>
+<span class="k">class</span> <span class="nc">Transport</span>
+  <span class="k">class</span> <span class="nc">BrokerConsumer</span>
+    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+      <span class="k">case</span> <span class="n">event</span><span class="p">.</span><span class="nf">name</span>
+      <span class="k">when</span> <span class="s1">'OderCheckedOut'</span>
+        <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">RequestMissingProduct</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="nf">checked_out_order</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s1">'...'</span>
+        <span class="c1"># ...</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h4 id="ситуация-3-когда-между-сервисами-синхронное-request-response-взаимодействие">Ситуация 3: Когда между сервисами синхронное request-response взаимодействие</h4>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example-chain-of-events-sync.jpg" alt="" />
+  <figcaption><p>Опять два сервиса для двух команд, но теперь связь синхронная (http, rpc, etc)</p>
+</figcaption>
+</figure>
+
+<p>Реализация аналогична первым двум ситуациям, только связь синхронная: получаем результат, определяем что за «событие», дергаем сервис через клиентскую библиотеку, либо на прямую по эндпоинту. Если используется RPC – название процедур будут названием команд. Идейно выглядит следующим образом:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">checked_out_order</span><span class="p">.</span><span class="nf">success?</span>
+  <span class="c1"># если результат "Заказ оформлен" - мы вызываем команду "Заказать недостающие товары у поставщика" в складском сервисе</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">warehouse_service</span><span class="p">.</span><span class="nf">request_product</span><span class="p">(</span><span class="n">checked_out_order</span><span class="p">)</span>
+  <span class="c1"># в данном случае результатом вызова будет событие "товары заказаны" или любое другое, которое было указано в es</span>
+<span class="k">else</span>
+  <span class="c1"># если результат "Заказ не оформлен" - ничего не делаем</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h3 id="actors">Actors</h3>
+
+<p>Так как акторы это те, кто работают с системой, то ES поможет определиться с набором ролей или UI, который необходим приложению.</p>
+
+<p>Для этого стоит выписать каждого актора, который будет взаимодействовать с системой, после чего можно под каждого сделать уникальный UI со необходимым набором действий (если требуется).</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example.jpg" alt="" />
+  <figcaption><p>В рассматриваемом примере 3 актора: покупатель, сотрудник склада и маркетолог. Следовательно стоит подумать о трех видах UI, для каждого из акторов</p>
+</figcaption>
+</figure>
+
+<p>Кроме этого, информацию об акторах можно использовать для работы над авторизацией: один актор == одна роль (если используется RBAC). А после определения ролей можно определить кто какое действие над системой может выполнить.</p>
+
+<h3 id="policies">Policies</h3>
+
+<p>Полиси (фиолетовый стикер) – условие, при котором система автоматически запустит команду, как реакцию на событие. Т.е. если для выполнения автоматического действия надо чтобы не только событие произошло, но и было удовлетворено требуемое условие.</p>
+
+<p>Я знаю и использую два варианта реализации полиси в коде:</p>
+<ul>
+  <li>Когда полиси реализуется вне кода команды;</li>
+  <li>Когда полиси реализуется в коде команды;</li>
+</ul>
+
+<p>Если для условия надо ходить в бд или данных из события не хватает – выбираю первый. Если события хватает и нет необходимости в походе в БД – выбираю второй.</p>
+
+<p><em><strong>Дополнение:</strong> существует еще один вариант, когда для полиси делается как доп абстракция, которая вызывается перед командой. Но кажется, что это уже будет перебор, хотя такой вариант тоже допускаю, но в статье рассматривать не буду.</em></p>
+
+<h4 id="ситуация-1-когда-полиси-реализуется-вне-команды">Ситуация 1: Когда полиси реализуется вне команды</h4>
+
+<p>Вернемся в пример, когда результат одной команды вызывает другую команду.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">checked_out_order</span><span class="p">.</span><span class="nf">success?</span>
+  <span class="c1"># если результат "Заказ оформлен" - мы вызываем следующую команду автоматически</span>
+  <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">RequestMissingProduct</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">checked_out_order</span><span class="p">)</span>
+<span class="k">else</span>
+  <span class="c1"># если результат "Заказ не оформлен" - ничего не делаем</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Тут стоит проверить, хватает ли на складе продуктов, если да - ничего делать не надо, а если нет - придется дозаказывать. Если полиси вызывается вне команды, то условие придется реализовывать перед вызовом команды (например в транспортном слое):</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">checked_out_order</span><span class="p">.</span><span class="nf">success?</span>
+  <span class="c1"># если продуктов осталось меньше N - вызываем заказ недостающих товаров</span>
+  <span class="c1"># если товаров больше N - ничего не делаем и не вызываем команду</span>
+  <span class="n">product_count</span> <span class="o">=</span> <span class="n">warehouse</span><span class="p">.</span><span class="nf">count_of_product</span><span class="p">(</span><span class="n">checked_out_order</span><span class="p">.</span><span class="nf">product_id</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">product_count</span> <span class="o">&lt;</span> <span class="no">N</span>
+    <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">RequestMissingProduct</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">checked_out_order</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">else</span>
+  <span class="c1"># если результат "Заказ не оформлен" - ничего не делаем</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>В данном примере используется прямой вызов куска кода, но давайте рассмотрим вариант распределенной системы с 2+ сервисами.</p>
+<h4 id="ситуация-12-когда-система-распределенная">Ситуация 1.2: Когда система распределенная</h4>
+
+<p>Так как полиси относится к команде, то логичнее делать команда в сервисе, к которому относится команда.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example-chain-of-events-async.jpg" alt="" />
+  <figcaption><p>Я использовал картинку с асинхронной коммуникацией, но в синхронной будет тоже самое</p>
+</figcaption>
+</figure>
+
+<p>В этом случае условие из полиси придется реализовывать в консьюмере (или в экшене контроллера для синхронного вызова).</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># В сервисе консьюмере</span>
+<span class="k">class</span> <span class="nc">Transport</span>
+  <span class="k">class</span> <span class="nc">BrokerConsumer</span>
+    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+      <span class="k">case</span> <span class="n">event</span><span class="p">.</span><span class="nf">name</span>
+      <span class="k">when</span> <span class="s1">'OderCheckedOut'</span>
+        <span class="k">if</span> <span class="n">product_count</span> <span class="o">&lt;</span> <span class="no">N</span>
+          <span class="n">command</span> <span class="o">=</span> <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">RequestMissingProduct</span><span class="p">.</span><span class="nf">new</span>
+          <span class="n">command</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="nf">checked_out_order</span><span class="p">)</span>
+        <span class="k">end</span>
+      <span class="k">when</span> <span class="s1">'...'</span>
+        <span class="c1"># ...</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div></div>
+
+<h4 id="ситуация-2-когда-полиси-реализуется-в-команде">Ситуация 2: Когда полиси реализуется в команде</h4>
+
+<p>В случае, когда полиси реализуется как часть команды – в начале команды делаем проверку:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ContextName</span>
+  <span class="k">class</span> <span class="nc">Command</span>
+    <span class="k">class</span> <span class="nc">RequestMissingProduct</span>
+      <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+        <span class="c1"># наше полиси - если товара осталось меньше N на складе - дозаказываем</span>
+        <span class="n">count_of_product</span> <span class="o">=</span> <span class="n">warehouse_repo</span><span class="p">.</span><span class="nf">product_count</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">product_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">count_of_product</span> <span class="o">&lt;</span> <span class="no">N</span>
+          <span class="c1"># реализация алгоритма заказа доп продуктов в магазин</span>
+        <span class="k">else</span>
+          <span class="c1"># сразу отдаем результат, что мол все ок и ничего делать не надо, т.е. мы не вызовем команду</span>
+        <span class="k">end</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p> Единственное, тут возникает вопрос, что такая команда возвращать должна. Для асинхронного вызова скипается код, а для синхронного – failure результат, который говорит, что ничего не произошло. Но тогда детали имплементации вырываются вне команды, что может говорить о текущих абстракциях. Поэтому иногда стоит возвращать что-то в духе «что надо – дозаказали».</p>
+<h3 id="external-systems">External systems</h3>
+
+<p>С точки зрения имплементации в коде – вызываем из команды нужную внешнюю систему и работаем с полученным результатом. Где результатом будет событие, которое внешняя система генерирует в результате работы.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example-external-system-with-system-event.jpg" alt="" />
+  <figcaption><p>Красным маркером показал событие, которое вернется обратно в команду при синхронном вызове внешней системы</p>
+</figcaption>
+</figure>
+
+<p>В коде вызов выглядит следующим образом:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ContextName</span>
+  <span class="k">class</span> <span class="nc">Command</span>
+    <span class="k">class</span> <span class="nc">RequestMissingProduct</span>
+      <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="c1"># реализация алгоритма заказа доп продуктов в магазин</span>
+        
+        <span class="c1"># в данном случае мы делаем запрос во внешнюю систему вендора, у которого заказываем товар</span>
+        <span class="c1"># а request_status будет «событием», которое возвращает внешняя система</span>
+        <span class="n">request_status</span> <span class="o">=</span> <span class="no">Vendor</span><span class="o">::</span><span class="no">HTTP</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">request_product</span><span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">quantity</span><span class="p">)</span>
+        <span class="c1"># продолжение реализации алгоритма заказа доп продуктов в магазин</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h3 id="read-models">Read models</h3>
+
+<p>Рид модель (зеленый стикер) – данные, которые нужны актору, чтобы принять решение о взаимодействии с системой. Например, не получив актуальную информацию по корзине (товарам и итоговой стоимости) – будет сложно принять решение, оформлять заказ или нет. А не зная информацию о товаре, будет трудно понять, стоит товар добавить в заказ или нет.</p>
+
+<p>Тут три ситуации, которые рассмотрим:</p>
+<ul>
+  <li>когда актору нужна информация из того же монолита, где вызывается команда и данных из события хватает;</li>
+  <li>когда актору нужна информация из того же монолита, где вызывается команда, но данных из события не хватает и нужно «дообогащение»;</li>
+  <li>когда актор взаимодействует с рид моделью из другого сервиса;</li>
+</ul>
+
+<p><em><strong>Дополнение:</strong> в <a href="https://vladikk.com/2017/03/20/tackling-complexity-in-cqrs/" target="_blank">CQR/CQRS присутствуют ограничения на возвращаемый результат командой</a>, а данные должны подтягиваться из query. Так как мы не говорим о каноничной реализации паттерна, то я допускаю вариант с получением рид модели из события команды, как популярный. Если планируете реализовывать паттерн – первую ситуацию можно проигнорить.</em></p>
+<h4 id="ситуация-1-когда-рид-модель-нужна-в-монолите-и-данных-из-события-хватает">Ситуация 1: Когда рид модель нужна в монолите и данных из события хватает</h4>
+
+<p>Кажется, что распространенный случай. Например, в «оформление заказа» можно предположить, что события с результатом оформления заказа хватит, чтобы фронтенд смог, используя изначальный заказ, сделать страницу чекаута.</p>
+
+<p>Т.е. в коде возвращаем результат:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">http_action</span>
+  <span class="n">command</span> <span class="o">=</span> <span class="no">ContextName</span><span class="o">::</span><span class="no">Command</span><span class="o">::</span><span class="no">Checkout</span><span class="p">.</span><span class="nf">new</span>
+  <span class="c1"># результат команды и будет событием, которое мы отобразили в ES</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">command</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+  <span class="c1"># используем результат команды, чтобы показать его как рид модель</span>
+  <span class="ss">render: </span><span class="n">result</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>А в UI, используя результат, делаем полноценную read model со статусом и наполнением заказа из информации, что осталась на фронте</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-example-read-model-as-response.jpg" alt="" />
+  <figcaption><p>Информацию о статусе заказа можно получить из события «заказ оформлен», а информацию о заказе можно либо получить из фронтового стейта, либо передать  информацию как часть события «заказ оформился»</p>
+</figcaption>
+</figure>
+
+<h4 id="ситуация-2-когда-рид-модель-нужна-в-монолите-но-данных-не-хватает">Ситуация 2: Когда рид модель нужна в монолите, но данных не хватает</h4>
+
+<p>Если актору нужно получить данные, которые не вытащить из события, придется как минимум сходить в базу данных. Для этого я добавляю отдельную абстракцию <code class="language-plaintext highlighter-rouge">query</code>, в которой происходит получение данных. Не обязательно использовать <code class="language-plaintext highlighter-rouge">query</code> как название, это личная привычка.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ContextName</span>
+  <span class="k">class</span> <span class="nc">Query</span>
+    <span class="k">class</span> <span class="nc">ShowOrder</span>
+      <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="c1"># любое получение данных, которые надо показать актору, в нашем случае - показ заказа перед чекаутом</span>
+        <span class="n">db</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="n">order_id</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div></div>
+
+<p>Пример простой, поэтому query может показаться избыточной абстракцией. Но если добавить фильтрацию, показ данных под роль или сложный поиск с дообогащением из другой БД, абстракция поможет изолировать получение данных.</p>
+
+<h4 id="ситуация-3-когда-данные-для-рид-модели-нужны-в-другом-сервисе">Ситуация 3: Когда данные для рид модели нужны в другом сервисе</h4>
+
+<p>Тут главный вопрос, какой подход в коммуникации использовать. Сам предпочитаю использовать модель коммуникаций, описанный в “<a href="https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/" target="_blank">Building microservices</a>” (Chapter 4. Microservices Communication Styles, Styles of Microserivces Commuinication). Поэтому распишу что делать для каждого из трех подходов: request-response, event-driven и common data.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/communication-types.jpg" alt="" />
+  <figcaption><p>Модель видов коммуникации в распределенных системах, которую использую для разделения коммуникаций в распределенных системах</p>
+</figcaption>
+</figure>
+
+<h5 id="request-response">Request-response</h5>
+
+<p>Тут два варианта:</p>
+<ul>
+  <li>Либо данные отправляются как запрос в сервис которому данные нужны. В этом случае сервис потребитель сохраняет данные локально, а потом использует когда надо;</li>
+  <li>Либо сервис, которому нужны данные, запрашивает данные из сервиса с командой/событием;</li>
+</ul>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/query-req-res-communication.jpg" alt="" />
+  <figcaption><p>В первом случае данные отдаются в место, где данные потребуются, во втором – запрашиваются из места, где данные нужны</p>
+</figcaption>
+</figure>
+
+<p>Единственное, убедитесь, что с static и stamp coupling все ок.</p>
+
+<h5 id="event-driven">Event-driven</h5>
+
+<p>Cервис отправляет асинхронное событие, после чего событие консьюмится в сервисе, где нужны данные и либо сохраняется для дальнейшего использования, либо используется сразу.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/query-event-driven-communication.jpg" alt="" />
+  <figcaption><p>Продьюсится событие, которое обрабатывается сервисом потребителем и сохраняется в БД. После чего, рид модель достает нужные данные из базы</p>
+</figcaption>
+</figure>
+
+<h5 id="common-data">Common data</h5>
+
+<p>Сервисы используют общий персистенс, после чего, сервис достает необходимые данные из общей базы:</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/query-common-data-communication.jpg" alt="" />
+  <figcaption><p>Сервис потребитель даже не будет знать откуда данные взялись</p>
+</figcaption>
+</figure>
+
+<h2 id="варианты-реализации-в-других-подходах">Варианты реализации в других подходах</h2>
+
+<p>Так как понимаю, что вариант написания кода выше может отличаться от того, что принято в других проектах или языке/фреймворке, то опишу как бы реализовывал маппинг ES в код для каждого из «популярных» способов.</p>
+
+<h3 id="генерация-кода-по-es-модели">Генерация кода по ES модели</h3>
+
+<p>Если самому писать код по ES моделе лень, можно попробовать воспользоваться генератором. Единственная проблема – работает только с джавой и котлином (для других экосистем решений не знаю). Для этого можно воспользоваться <a href="https://docs.vlingo.io/xoom-designer#modeling-with-the-xoom-designer" target="_blank">xoom-designer</a>, который сгенерирует проект с нужными абстракциями.</p>
+
+<p>Плюс, слышал лайфхак связанный с archimate (лично не проверял). Для этого придется <a href="https://dckms.github.io/system-architecture/emacsway/it/ddd/ddd-in-practice/event-storming/archi.html" target="_blank">реализовать ES модель в archimate</a>. После можно будет сделать экспорт модели в csv файл, а полученный файл использовать для проверки тестов, кода и для fitness functions.</p>
+
+<h3 id="mvc">MVC</h3>
+
+<p>В отличии от кода, который написал выше, в MVC абстракций меньше: model, view, controller. Так как редко видел чистые MVC проекты, добавлю еще две абстракции: service и query объекты.</p>
+
+<ul>
+  <li><strong>Read model</strong> – три возможных варианта: реализация логики в контроллере (GET запросы) (о «качестве» кода не говорим), реализация логики как метода модели и отдельный query object;</li>
+  <li><strong>Команда</strong> – три варианта, аналогичных read model: реализация в контроллере (POST, PUT, PATCH, DESTROY запросы), реализация в модели и service object;
+  - Вызовы между командами делаются аналогично примеру выше;</li>
+  <li><strong>Внешние системы</strong> – никакого отличия от примера выше;</li>
+  <li><strong>Полиси</strong> – аналогично примеру выше;</li>
+</ul>
+
+<p>В случае MVC фреймворков стоит учитывать, что бизнес логика и транспортный слой разделены (даже без явного указания этого в коде). Т.е. помнить, что экшен =/= команде, просто нет явной границы между командой и транспортом в реализации.</p>
+
+<h3 id="clean-architecture">Clean architecture</h3>
+
+<p>Держите в голове, что я не эксперт в clean architecture, поэтому могут быть ошибки. Но, в моей голове, выглядит маппинг следующим образом:</p>
+
+<ul>
+  <li><strong>Read model</strong> – располагается в infrastructure layer, если правильно концепт понимаю;</li>
+  <li><strong>Команда</strong> – use-case. Название для use-case берем из названия команд;
+  - Вызовы между командами делаются аналогично примеру из основной части ответа;</li>
+  <li><strong>Внешние системы</strong> – из use-case;</li>
+  <li><strong>Полиси</strong> – аналогично примеру из основной части ответа;</li>
+</ul>
+
+<h3 id="graphql">GraphQL</h3>
+
+<p>Так как GraphQL разделяет query и mutation (команды) по дефолту, то можно не думать:</p>
+
+<ul>
+  <li><strong>Read model</strong> – query. Единственное, стоит подумать о том, какие акторы какую часть схемы будут видеть (либо авторизацию сделать под актора, либо отдельную схему под каждого из акторов)</li>
+  <li><strong>Команда</strong> – mutation. Причем названия мутаций берем из названий команд</li>
+  <li><strong>Внешние системы</strong> – аналогично примеру из основной части ответа;</li>
+  <li><strong>Полиси</strong> – скорее всего – только часть мутации (если есть варианты лучше - пишите);</li>
+</ul>
+
+<h3 id="domain-model-pattern">Domain model pattern</h3>
+
+<p>Если используете в проекте <a href="https://martinfowler.com/eaaCatalog/domainModel.html" target="_blank">domain model pattern</a>, то советую посмотреть <a href="https://ibm-cloud-architecture.github.io/refarch-eda/methodology/domain-driven-design/" target="_blank">статью из интернета о том, как замапить EventStorming на domain model</a>. Либо почитать <a href="https://www.oreilly.com/library/view/learning-domain-driven-design/9781098100124/" target="_blank">Learning DDD</a>, где в справочных материалах <a href="https://github.com/vladikk/learning-ddd/tree/main/wolfdesk/eventually-wolfdesk/eventually" target="_blank">приводился пример маппинга</a>.</p>
+
+<h2 id="бонус-тестирование">Бонус: тестирование</h2>
+
+<p>Дисклеймер: в данном случае будет только о black box testing. В случае, когда тестируется реализация, а не поведение, ES модель вряд-ли поможет, кроме как названиями команд/событий.</p>
+
+<p>Тут можно сослаться на Альберто, который <a href="https://www.youtube.com/live/v4xLxmpAFdI?t=3090" target="_blank">приводил пример, как из ES мапить на BDD</a>. Но, ES подойдет и в «обычном» тестировании, так как уже готово описание поведения. Т.е. описание того, что должны делать команды и список результатов. Это поможет в black box тестах команд, так как можно сразу понять кто и что будет вызывать и какой результат должен получится. При этом, названия тестов уже готовы, достаточно реализацию теста написать и понять контексты, в которых происходит то или иное событие.</p>
+
+<p>Давайте на примере оформления заказа.</p>
+
+<figure class="image">
+  <img src="/public/images/questions/2024-10-11-how-to-map-eventstorming-to-code/es-checkout-example.jpg" alt="" />
+  <figcaption><p>Пример чекаута, который возвращает разные результаты, в зависимости от контекста</p>
+</figcaption>
+</figure>
+
+<p>На момент создания ES, мы знаем над чем происходит действие (заказ), кто выполняет действие (покупатель) и какой результат ожидается (ок, либо проблемы). На основе этой информации уже можно сделать болванку для тестов:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">describe</span> <span class="s2">"Order"</span> <span class="k">do</span>
+  <span class="c1"># контекст в котором все ок придется определить самому</span>
+  <span class="n">context</span> <span class="s2">"when purchaser ..."</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s2">"check out process completed without issues"</span> <span class="k">do</span>
+      <span class="c1"># реализация теста</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="c1"># контекст в оформление заказа фейлится придется определить самому</span>
+  <span class="n">context</span> <span class="s2">"when purchaser ..."</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s2">"check out process failed "</span> <span class="k">do</span>
+      <span class="c1"># реализация теста</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Останется только понять контекст в котором происходит каждое из событий и написать реализацию теста.</p>
+
+<p>При этом, каждая бизнесовая команда будет содержать уникальный набор тестов в собственном файле, что позволит изолировать тесты. И никто не мешает сначала сделать EventStorming, после написать тесты, потом «сгенерировать» болванки команд, а в конце написать реализацию команды и отрефакторить полученный код. Т.е. использовать TDD/BDD подход в написании кода.</p>
+
+<h2 id="итоги">Итоги</h2>
+
+<p>Используя ES можно разделить «думать» и «делать»: сначала думаем о бизнесовом процессе с названиями и определяем связи. После – занимаемся реализацией бизнесового процесса в коде и «заполняем» алгоритмами реализации и вызовом <a href="https://pepegramming.site/questions/data-model/#случай-1-проект-только-в-голове-и-хочется-понять-как-связаны-данные-между-собой" target="_blank">моделей о которых думаем в момент реализации концептуальной модели данных</a>.</p>
+
+<p>Благодаря такому подходу, получаем плюсы от использования ES в написании кода:</p>
+
+<ul>
+  <li>Уменьшение когнитивной нагрузки, за счет того, что придется меньше думать об общем и можно будет сфокусироваться на частном (реализации команд);</li>
+  <li>Получение «карты» процессов в системе со связями. Если понадобиться что-то исправить, можно быстро найти нужный кусок в ES и после, по названию команды, найти нужное место в коде;</li>
+  <li>Использование ubiquitous language из DDD в коде, вместо придумывания терминов, которые потом придется объяснять бизнесу (либо наоборот переводить термины бизнеса на код);</li>
+</ul>
+
+<p>Но и минусы присутствуют, связанные с ES моделью:</p>
+
+<ul>
+  <li>Придется постоянно держать актуальную версию ES модели, что может быть затруднительно для стартапов или для компаний, где нет ответственного человека или нет интереса в поддержке моделей сотрудниками;</li>
+  <li>Придется перестраивать процессы и сначала проектировать бизнес процесс, после чего уже писать код, что не сработает для гипотез и RnD, где сначала делают, потом думают (это норм);</li>
+  <li>Придется каким-то образом верифицировать, что код и ES модель консистентны, в 99% случаев в ручную;</li>
+</ul>
+
+<p>В конце напишу чеклист, которым пользуюсь, когда надо написать код по ES модели:</p>
+
+<ol>
+  <li>Сделать бизнес объекты под каждую команду, где название будет такое же, как название команды;</li>
+  <li>Сделать эндпоинты для каждой команды, которыми будут пользоваться акторы. При этом определить, как будут акторы разграничиваться в рамках транспорта (аунтификация, различные UI);</li>
+  <li>Разобраться с коммуникациями между командами: сделать эндпоинты/процедуры, создать необходимые топики/очереди;</li>
+  <li>Подготовить black box тесты для каждой команды. Подумать в каких контекстах появится каждое из возможных событий;</li>
+  <li>Реализовать логику команд. Добавить вызов внешних систем и (или) полиси;</li>
+  <li>Проверить, что код работает как требуется и радоваться жизни;</li>
+</ol>
+
+<p>Если используете другой подход маппинга - буду рад, если расскажите, я дополню статью. Ну и делитесь личным опытом в комментарии, добавлю в ответ.</p>
+
+<h2 id="доп-ссылки">Доп ссылки</h2>
+
+<ul>
+  <li>
+    <p>[en] Статья от разработчиков cucumber (тест фреймворк для BDD), в которой <a href="https://cucumber.io/blog/bdd/bdd-with-event-mapping/" target="_blank">описывается как концепции из ддд (точнее из event mapping) перевести в тест кейсы</a>. В случае с ES подход аналогичен.</p>
+  </li>
+  <li>[en] Пять репозиториев с кодом, который был написан (надеюсь) с использованием EventStorming:
+    <ul>
+      <li><a href="https://github.com/ddd-by-examples/library" target="_blank">github.com/ddd-by-examples/library</a></li>
+      <li><a href="https://github.com/m-khooryani/OverCloudAirways-DDD-sample" target="_blank">github.com/m-khooryani/OverCloudAirways-DDD-sample</a></li>
+      <li><a href="https://github.com/mkejeiri/Domain-Driven-Design" target="_blank">github.com/mkejeiri/Domain-Driven-Design</a></li>
+      <li><a href="https://github.com/ddd-by-examples/factory" target="_blank">github.com/ddd-by-examples/factory</a></li>
+      <li><a href="https://github.com/mgce/modular-monolith-nodejs" target="_blank">github.com/mgce/modular-monolith-nodejs</a></li>
+    </ul>
+  </li>
+  <li>
+    <p>[en] Еще один пример <a href="https://github.com/ContextMapper/contextmapper.github.io/blob/master/_docs/tutorials/event-storming.md" target="_blank">перевода EventStorming в код</a>. Для примера используется джава (если правильно распарсил).</p>
+  </li>
+  <li>
+    <p>[en] Статья не об ES, но о том, как в целом <a href="https://ibm-cloud-architecture.github.io/refarch-eda/methodology/domain-driven-design/" target="_blank">как используя концепции тактического и стратегического DDD для написания кода</a>. EventStorming тоже присутствует.</p>
+  </li>
+  <li>[en] Репозиторий с <a href="https://github.com/davydovanton/layerd-arch-style-with-dry-example/tree/master/contexts" target="_blank">кодом на руби, который сделал для воркшопа</a>. Можно посмотреть как описанный подход работает в плюс-минус рабочем коде</li>
+</ul>
+
+
+  <hr>
+
+  <p>Нашли опечатку или ошибку? Буду рад <a href="https://github.com/2pegramming/2pegramming.github.io/tree/master/questions" target="_blank">PR-у</a>.</p>
+</div>
+
+<!-- <div class="related"> -->
+<!--   <h2>Related Posts</h2> -->
+<!--   <ul class="related&#45;posts"> -->
+<!--      -->
+<!--       <li> -->
+<!--         <h3> -->
+<!--           <a href="/questions/how-to-be-sure-about-technical-decision/"> -->
+<!--             Как убедиться, что техническое решение нужно? -->
+<!--             <small>27 Sep 2024</small> -->
+<!--           </a> -->
+<!--         </h3> -->
+<!--       </li> -->
+<!--      -->
+<!--       <li> -->
+<!--         <h3> -->
+<!--           <a href="/questions/how-i-use-obsidian-and-why/"> -->
+<!--             Как и почему использую Obsidian -->
+<!--             <small>14 Sep 2024</small> -->
+<!--           </a> -->
+<!--         </h3> -->
+<!--       </li> -->
+<!--      -->
+<!--       <li> -->
+<!--         <h3> -->
+<!--           <a href="/questions/make-events-small/"> -->
+<!--             Как уменьшить размер события в асинхронных коммуникациях -->
+<!--             <small>30 Aug 2024</small> -->
+<!--           </a> -->
+<!--         </h3> -->
+<!--       </li> -->
+<!--      -->
+<!--   </ul> -->
+<!-- </div> -->
+
+    </div>
+
+  </body>
+</html>
