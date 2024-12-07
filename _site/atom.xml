@@ -4,13 +4,472 @@
  <title></title>
  <link href="http://pepegramming.site/atom.xml" rel="self"/>
  <link href="http://pepegramming.site/"/>
- <updated>2024-12-06T18:01:15+03:00</updated>
+ <updated>2024-12-07T18:06:47+03:00</updated>
  <id>http://pepegramming.site</id>
  <author>
    <name>Anton Davydov</name>
    <email></email>
  </author>
 
+ 
+ <entry>
+   <title>Как хранить и работать с графами в бд, если нельзя выбрать neo4j</title>
+   <link href="http://pepegramming.site/questions/how-to-store-graph-without-neo4j/"/>
+   <updated>2024-12-09T00:00:00+03:00</updated>
+   <id>http://pepegramming.site/questions/how-to-store-graph-without-neo4j</id>
+   <content type="html">&lt;h2 id=&quot;вопрос&quot;&gt;Вопрос&lt;/h2&gt;
+
+&lt;div class=&quot;question-text&quot;&gt;
+  &lt;blockquote&gt;
+    &lt;p&gt;Хотим использовать графы, но не можем или хотим позволить себе neo4j, какие есть варианты?&lt;/p&gt;
+  &lt;/blockquote&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Так как вопрос без конкретики и не знаю ситуации целиком, то буду отвечать абстрактно. Расскажу три с половиной варианта хранения и работы с графами. Если до этого работали с графовыми базами и (или) проходили курс дискретной математики – вряд-ли узнаете что-то новое.&lt;/p&gt;
+
+&lt;p&gt;Давайте договоримся, что вы уже знаете что такое графы, графовые бд и зачем нужны подобные вещи. Благодаря этому и так большой ответ не станет еще больше. Если не знаете, то советую посомтреть на три ссылки, которые помогут разобраться: &lt;a href=&quot;https://www.geeksforgeeks.org/what-is-graph-database/&quot;&gt;первая&lt;/a&gt;, &lt;a href=&quot;https://hackernoon.com/graph-databases-how-do-they-work&quot;&gt;вторая&lt;/a&gt; и &lt;a href=&quot;https://neo4j.com/docs/getting-started/graph-database/&quot;&gt;документация neo4j на тему графовых баз&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Второй момент: я выделяю две причины, почему в проекте захотят использовать графовую базу данных:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Для хранения слабо связанной информации, которую иначе не упакуешь (можно попробовать заменить векторами). Пример: рекомендательные системы, где нужно предложить пользователю одноразовую посуду, а не еще один мангал, если в заказе лежит одноразовый мангал и пачка мяса;&lt;/li&gt;
+  &lt;li&gt;Для сложных поисков по не очевидно связанным данным. Пример: делаем аналог imdb, а пользователям разрешаем искать ответы на вопросы в духе «какой цвет пиджаков был популярен во время награждения оскара, когда победителем был фильм, где режиссер любил пить чертовски хороший черный кофе»;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Поэтому каждый из вариантов, которые опишу ниже, буду также рассматривать в контексте описанных причин.&lt;/p&gt;
+
+&lt;h2 id=&quot;решение-0-хранить-граф-в-памяти&quot;&gt;Решение 0: хранить граф в памяти&lt;/h2&gt;
+
+&lt;p&gt;Вариант о котором стоит упомянуть, но, в рамках ответа, серьезно рассматривать не планирую.&lt;/p&gt;
+
+&lt;p&gt;Идея в том, что перед запуском проекта берем библиотеку для работы с графами и загружаем в память графовую структуру, с которой будет работать бизнес логика. Если думаете, что идея сумасшедшая, то вспоминаем о state machines, которые &lt;a href=&quot;https://pypi.org/project/Graph-State-Machine/&quot;&gt;описываются графом&lt;/a&gt;. Еще один пример из личного опыта: пять лет назад загорелся идеей сделать &lt;a href=&quot;https://github.com/dry-rb/dry-system-dependency_graph&quot;&gt;автоматическую генерацию «карты» для IoC&lt;/a&gt;, чтобы анализировать зависимости и визуально показать как связаны элементы приложения. &lt;a href=&quot;https://github.com/dry-rb/dry-system-dependency_graph/blob/master/lib/dry/system/dependency_graph/graph_builder.rb&quot;&gt;Хранение элементов реализовал в виде графа&lt;/a&gt;, который планировал в будущем кешировать в отдельном файле.&lt;/p&gt;
+
+&lt;p&gt;Выглядеть решение может так: пишем init скрипт, который запускаем перед стартом проекта, в котором хардкодим нужный граф.&lt;/p&gt;
+
+&lt;div class=&quot;language-elixir highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# before_initial_script.exs&lt;/span&gt;
+  
+&lt;span class=&quot;n&quot;&gt;graph&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;no&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_vertices&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;product_1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product_3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_edge&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;product_1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_edge&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;product_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product_3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;|&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_edge&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;product_3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product_1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Бонус для &lt;del&gt;сумасшедших&lt;/del&gt; храбрых духом, которые хотят динамически расширять граф: можно упороться и перевести объект графа в строку байтов, т.е. воспользоваться [marshalling-ом](https://en.wikipedia.org/wiki/Marshalling_(computer_science). После чего сохранить полученный «граф» в персистенс (например redis SET). Описанная идея тянет больше на шутку, хотя предполагаю, что может возникнуть ситуация, когда подход окажется рабочим (но в голову конкретика не приходит).&lt;/p&gt;
+
+&lt;h3 id=&quot;плюсы-решения&quot;&gt;Плюсы решения&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Высокий performance, так как данные в памяти. Потенциально на performance может сказаться реализация библиотеки;&lt;/li&gt;
+  &lt;li&gt;Решение работает с небольшими графами, которые будут использоваться как вспомогательные графы для работы бизнес логики. Для больших данных можно в пустую выделить память, а граф не будет использоваться целиком;&lt;/li&gt;
+  &lt;li&gt;Если хотите использовать графовые структуры в библиотеках или других development tools – стоит присмотреться к решению;&lt;/li&gt;
+  &lt;li&gt;Так как реализация графа контролируема разработчиком, можно найти подходящую реализацию библиотеки для нужного вида графа;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;минусы-решения&quot;&gt;Минусы решения&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;О персистене можно забыть, только если не заморочиться с marshalling-ом, либо заморочиться с хранением данных в файлах. Если хотите использовать решение для «реальных» данных – лучше посмотреть на второе решение далее по тексту;&lt;/li&gt;
+  &lt;li&gt;Надежность решения вызывает вопросы;&lt;/li&gt;
+  &lt;li&gt;Если данных много, можно не собрать граф (OOM) либо забить память ненужными данным;&lt;/li&gt;
+  &lt;li&gt;Поиск и фильтрация по графу может не работать (зависит от реализации библиотеки);&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;итоги&quot;&gt;Итоги&lt;/h3&gt;
+
+&lt;p&gt;Так как описанное «для галочки», то останавливаться на решении не стоит.&lt;/p&gt;
+
+&lt;h2 id=&quot;решение-1-взять-другую-графовую-базу-данных&quot;&gt;Решение 1: взять другую графовую базу данных&lt;/h2&gt;
+
+&lt;p&gt;Если специфика изначального вопроса в том, что именно neo4j нет возможности добавить в проект (нет компетенций, либо дорого, либо не удовлетворяет требованиям), стоит посмотреть на другие реализации графовых баз данных. Вот список относительно популярных решений (хотя графовую базу, которая не называется neo4j, нельзя назвать популярной):&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/arangodb/arangodb&quot;&gt;ArangoDB&lt;/a&gt;. Вторая по популярности, после neo4j, если верить db-engines.com;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/InfiniteGraph&quot;&gt;Infinite Graph&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.tigergraph.com&quot;&gt;Tiger Graph&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/typedb/typedb&quot;&gt;TypeDB&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://aerospike.com&quot;&gt;Aerospike&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://janusgraph.org&quot;&gt;JanusGraph&lt;/a&gt;. Поддерживает &lt;a href=&quot;https://en.wikipedia.org/wiki/Gremlin_(query_language)&quot;&gt;Gremlin Query Language&lt;/a&gt;;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Кроме этого, на рынке присутствую готовые решения в облаках aws, google и microsoft:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://aws.amazon.com/neptune/&quot;&gt;Amazon Neptune&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://azure.microsoft.com/en-us/products/cosmos-db&quot;&gt;CosmosDB&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://cloud.google.com/blog/products/databases/announcing-spanner-graph&quot;&gt;Spanner Graph&lt;/a&gt;;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Если списка мало, можно найти еще больше решений по &lt;a href=&quot;https://db-engines.com/en/ranking/graph+dbms&quot;&gt;ссылке&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;плюсы-решения-1&quot;&gt;Плюсы решения&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Плюсы использования графовых баз данных сохраняются: язык запросов , оптимизированное хранение данных и так далее;&lt;/li&gt;
+  &lt;li&gt;Другие базы исправляют проблемы neo4j в плане характеристик. Например, если нужен высокий availability, то придется взять neo4j enterprise edition. Либо взять ArangoDB, &lt;a href=&quot;https://arangodb.com/highest-availability/&quot;&gt;у которого с характеристикой дела обстоят лучше&lt;/a&gt;, но лично не проверял;&lt;/li&gt;
+  &lt;li&gt;Если завязаны в инфраструктуре aws или azure – Amazon Neptune или CosmosDB разворачивается «одной кнопкой». Вопрос цены и применимости стоит изучить отдельно;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;минусы-решения-1&quot;&gt;Минусы решения&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Не каждая база из списка «чисто» графовые. Т.е. большая часть NoSQL с разными видами структур, в том числе и графами;&lt;/li&gt;
+  &lt;li&gt;Инфраструктурную экспертизу найти еще сложнее чем для neo4j. Исключение – cloud решения;&lt;/li&gt;
+  &lt;li&gt;Навыки разработки связанные с neo4j и так уникальны по сравнению с базовой CRUD разработкой. А базы из списка еще менее популярны, что накладывает риски и дополнительные траты на обучение разработчиков;&lt;/li&gt;
+  &lt;li&gt;Экосистемные проблемы. Адаптеры для баз из списка написаны на меньшем количестве языков, чем neo4j (например, для CosmoDB нет адаптеров для руби, а TigerGraph работает только с крестами и джавой). Плюс, не понятно как выстраивать работу с базами в фреймворках (возможно придется писать и поддерживать собственные адаптеры);&lt;/li&gt;
+  &lt;li&gt;Из-за проблем популярности, быстро сравнить базы между собой не представляется возможным. &lt;a href=&quot;https://db-engines.com/en/system/Amazon+Neptune%3BArangoDB%3BMicrosoft+Azure+Cosmos+DB%3BNeo4j%3BTigerGraph&quot;&gt;Можно воспользоваться db-engines&lt;/a&gt;, но информации связанной с характеристиками мало. Например, не понятно как базы будут работать с большим количеством данных под нагрузкой на запись. Т.е. вопрос performance и других характеристик придется изучать самостоятельно и опытным путем;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;итоги-1&quot;&gt;Итоги&lt;/h3&gt;
+
+&lt;p&gt;Выбор другой графовой базы данных поможет как в хранении слабосвязанных данных, так и в сложном поиске. При этом, плюсы также сохраняются. Из минусов – низкая популярность и высокая стоимость (инфраструктурная, обучение разработчиков, отсутствие экосистемы), что приводит к рискам.&lt;/p&gt;
+
+&lt;p&gt;Если решите пойти по этому пути – кажется, что лучше взять готовое клауд решение, если такая опция в наличии. В противном случае посмотреть в сторону ArangoDB, как второй по популярности.&lt;/p&gt;
+
+&lt;h2 id=&quot;решение-2-реализовать-графы-в-существующей-бд-самостоятельно&quot;&gt;Решение 2: реализовать графы в существующей бд самостоятельно&lt;/h2&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Дисклаймер:&lt;/strong&gt; я не эксперт в теории графов. В институте дискретной математики не было, поэтому детали опускаю по незнанию. Если нашли ошибку – пишите в комментарии, а если хотите подробнее изучить теорию графов – стоит &lt;a href=&quot;https://diestel-graph-theory.com&quot;&gt;обратиться к книге Reinhard Diestel&lt;/a&gt;. Плюс, я опущу направленные графы в виду размера ответа, поэтому оставляю эту тему для самостоятельного изучения.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Знаю два варианта, как представить графовую структуру в «простых» структурах: либо через представление графа как матрицы, либо через списки. &lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;В случае с представлением графа как матрицы поможет &lt;a href=&quot;https://en.wikipedia.org/wiki/Adjacency_matrix&quot;&gt;матрица смежности&lt;/a&gt; и &lt;a href=&quot;https://ru.wikipedia.org/wiki/Матрица_инцидентности&quot;&gt;матрица инцидентности&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;В случае с представлением графа как списка поможет &lt;a href=&quot;https://ru.wikipedia.org/wiki/Список_смежности&quot;&gt;список смежности&lt;/a&gt; (частный случай матрицы смежности) и &lt;a href=&quot;https://en.wikipedia.org/wiki/Edge_list&quot;&gt;список ребер&lt;/a&gt;, что тоже можно назвать частным случаем представления матрицы смежности;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Если быть честным, стоит упомянуть еще один вариант, который работает только с бинарными деревьями и binary heap. Такой вид графов &lt;a href=&quot;https://en.wikipedia.org/wiki/Binary_tree#Arrays&quot;&gt;представляется в виде массива&lt;/a&gt; (именно array, а не list, это важно из-за быстрого доступа к элементу по id). Но так как бинарные графы редко используются в графовых базах данных, подобный вид графов опущу.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/binary-tree-as-array.jpg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Вершина графа нулевой элемент массива, последующие ноды укладываются последовательно. Единственное, важно помнить о пустых элементах, которые также заполняются в массиве&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Давайте разберемся, как хранение графа в виде матрицы и списка работает.&lt;/p&gt;
+
+&lt;h3 id=&quot;рещение-21-представляем-граф-в-виде-матрицы&quot;&gt;Рещение 2.1: представляем граф в виде матрицы&lt;/h3&gt;
+
+&lt;p&gt;В качестве примера будем рассматривать граф, состоящий из 5 нод и 7 связей. Для примера не важно что это за граф, поэтому можете представить, что это список связанных товаров для рекомендательной системы.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-matrix-base.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Граф, который будем описывать в виде матрицы. Важный момент, из 1 ноды присутствует связь к этой же ноде, связь указал стрелкой, чтобы понятно было. Представление направленных графов оставлю для самостоятельного изучения&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h4 id=&quot;вариант-1-строки-и-колонки-матрицы--ноды&quot;&gt;Вариант 1: строки и колонки матрицы – ноды&lt;/h4&gt;
+
+&lt;p&gt;Чтобы описать граф как матрицу, надо описать каждую ноду и ее связь с другой нодой. Первое, что в голову приходит, сделать таблицу 5x5, где строки – номер ноды (или ее id), а колонки – тоже каждая нода с которой будет связана рассматриваемая нода.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-matrix-build-matrix.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Каждая нода соответствует одному значению строки таблицы (зеленая стрелка) и одной колонке (фиолетовая стрелка)&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Дальше находим первую связь между нодами, например между нодой 1 и нодой 2. Связь отмечаем в таблице как пересечение строки и колонки.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-matrix-fill-edge.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Так как нода 1 и 2 связаны между собой, то перекрестие строки 1 и ноды 2 отмечаем как связь&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Так как, в рассматриваемом графе, связь не только между нодой 1 и нодой 2, а еще и между нодой 2 и нодой 1 (обратная связь), то придется отметить эту связь между и во второй строке.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-matrix-fill-edge-2.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Строка для ноды 2 будет также отображать связь между первой и второй нодой&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Проделав эту работу для каждой ноды и каждой связи, получим таблицу, в которой отображены пересечения между каждой нодой графа.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-matrix-fill-full.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Итоговая таблица связей в рассматриваемом графе&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;А так как таблицу легко представить в виде матрицы, то считаем, что связь будет 1, а отсутствие связей 0. В результате чего получаем матрицу, которую называют &lt;a href=&quot;https://en.wikipedia.org/wiki/Adjacency_matrix&quot;&gt;матрицой смежности&lt;/a&gt;.&lt;/p&gt;
+
+\[M_{graph} = \begin{pmatrix}
+1 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0\\
+1 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0\\
+1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0\\
+0 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0
+\end{pmatrix}\]
+
+&lt;h4 id=&quot;вариант-2-строки-матрицы--ноды-колонки--ребра&quot;&gt;Вариант 2: строки матрицы – ноды, колонки – ребра&lt;/h4&gt;
+
+&lt;p&gt;Второй вариант – вспомнить о связях и описать граф используя node + edge таблицу. Для примера рассмотрим тот же граф, для которого делали матрицу смежности.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-other-matrix-base.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Граф, который переводили в матрицу смежности. На этот раз понадобятся ребра, поэтому пометим каждое ребро уникальным id&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Дальше делаем таблицу, только вместо 5х5 таблицы с нодами и в колонках и в строках, получаем другую размерность: строки – ноды (поэтому пять), а колонки – ребра между нодами (поэтому семь).&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-other-matrix-build-table.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Полученная таблица 5х7. Зеленым показал строки как ноды, а фиолетовым – колонки как ребра. Получилась мешанина из стрелок, но надеюсь идею передал&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Теперь, чтобы заполнить таблицу необходимо взять ноду и на пересечении с каждым ребром сделать отметку о наличии связи. Например, для первой ноды есть связь с ребром &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;e1&lt;/code&gt;, которую необходимо отметить в таблице.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-other-matrix-first-fill.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;У первой ноды присутствует связь в саму себя через ребро (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;e1&lt;/code&gt;), отображаем эту связь в созданной таблице&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Аналогично делаем для последующих связей.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-other-matrix-second-fill.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Кроме &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;e1&lt;/code&gt; у первой ноды еще присутствует связь с ребром &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;e2&lt;/code&gt;, которую также отображаем в таблице&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;По итогу получаем заполненную таблицу, в которой указано какие ноды с какими ребрами связаны.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-other-matrix-complete.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Снова получаем заполненную таблицу, но на этот раз связанную с нодами и ребрами&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Итоговую матрицу получаем также как в случае матрицы смежности (переведя таблицу в набор 0 и 1). Только на этот раз, полученную матрицу называют &lt;a href=&quot;https://ru.wikipedia.org/wiki/Матрица_инцидентности&quot;&gt;матрицей инцидентности&lt;/a&gt;.&lt;/p&gt;
+
+\[M_{graph} = \begin{pmatrix}
+1 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1
+\end{pmatrix}\]
+
+&lt;h4 id=&quot;переносим-матрицу-в-популярные-базы&quot;&gt;Переносим матрицу в «популярные» базы&lt;/h4&gt;
+
+&lt;p&gt;Не важно какой из вариантов выбран для получения матрицы, по итогу получим описание графа в виде массива, состоящего из массивов (двумерная матрица). Дальше возникает вопрос того, как хранить такую структуру, для этого накину идей для 4 «часто» встречающихся баз данных:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Могу предложить два варианта:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Делаем &lt;a href=&quot;https://www.postgresql.org/docs/current/arrays.html&quot;&gt;multi dimensional array&lt;/a&gt; как тип одной из колонок (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;integer[][]&lt;/code&gt;) в которую записываем матрицу смежности или инцидентности;&lt;/li&gt;
+  &lt;li&gt;Делаем таблицу &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;graph_name&lt;/code&gt; в которой будет &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;count(nodes)&lt;/code&gt; колонок, плюс строки под каждую строку матрицы. По итогу получаем таблицу, в которой &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SELECT * FROM graph_name WHERE id = node_id&lt;/code&gt; покажет с какими нодами связана нода &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;node_id&lt;/code&gt;. А &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SELECT * FROM graph_name WHERE node_N = 1&lt;/code&gt; покажет ноды, связанные с нодой &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;node_N&lt;/code&gt;;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Redis&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Ничего лучше не нашел и не придумал, чем представить матрицу в виде json и положить строку в любой из видов ключей, например SET: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SET graph_name &quot;[ [...], [...], ... ]&quot;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;MongoDB&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Так как в монге работаем с документом, можем сразу положить матрицу как двумерный массив json и с ним работать.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Действуем аналогично mongoDB.&lt;/p&gt;
+
+&lt;h4 id=&quot;плюсы-матричного-представления-графов&quot;&gt;Плюсы матричного представления графов&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Компактный способ хранения. Если хранить числа станет тяжело, представляем матрицу как набор битов. Единственное исключение – ситуации когда нод намного больше, чем связей между ними, из-за чего получаем &lt;a href=&quot;https://en.wikipedia.org/wiki/Sparse_matrix&quot;&gt;разреженную матрицу&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;Так как матрица не зависит от данных, можно связывать любую информацию. Например, для матрицы смежности, можно сделать граф связанных товаров (если товары не добавляются/удаляются каждую секунду) и для секции «с товаром Х покупают еще» достаточно достать строку матрицы по id товара и сразу получить список связанных;
+  - Единственное, пример не работает в случае, когда список товаров будет зависеть от того, что добавили в корзину. В таком случае придется прибегнуть к списку множеств/ребер и к пересечению множеств (set intersection). В коде пересечение реализуется в зависимости от спецификации: в ruby – &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[1, 2, 3] &amp;amp; [1, 3]&lt;/code&gt;, в python – &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;{1, 2, 3} &amp;amp; {1, 3}&lt;/code&gt;, в java поможет &lt;a href=&quot;https://docs.oracle.com/javase/8/docs/api/java/util/List.html#retainAll-java.util.Collection-&quot;&gt;retainAll&lt;/a&gt; (возможен вариант лучше), в ванильном js придется фильтровать массив – &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[1, 2, 3].filter(value =&amp;gt; [1, 3].includes(value))&lt;/code&gt;, а в go писать руками;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;минусы-матричного-представления-графов&quot;&gt;Минусы матричного представления графов&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Главный минус – в случае динамических графов (которые меняются постоянно), придется постоянно менять размерность матрицы и пересчитывать значения. Сразу получаем проблемы с performance и сложность кода, а если реализуете матрицу через sql таблицу – придется думать о динамических колонках; &lt;/li&gt;
+  &lt;li&gt;Сложный поиск по матрице может стать проблемой, т.е. запросы в духе «какой цвет пиджаков был популярен во время награждения оскара, когда победителем был фильм, где режиссер любил пить кофе без сахара» написать будет проблематично и придется использовать рекурсивные запросы;&lt;/li&gt;
+  &lt;li&gt;Если планируете использовать мета информацию в ребрах (название связи), или нодах  (например люди с именами и ролям), то придется хранить мету отдельно от матрицы, что усложняет решение, особенно в поиске по метаинформации;&lt;/li&gt;
+  &lt;li&gt;При добавлении или удалении ноды или ребра, придется по новой перестраивать матрицы, что может занимать время для больших матриц;&lt;/li&gt;
+  &lt;li&gt;Люди могут не знать как работают матрицы смежности и инцидентности, поэтому придется обучать теории графов разработчиков, что накладывает расходы и риски;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;выводы-по-матрицам&quot;&gt;Выводы по матрицам&lt;/h4&gt;
+
+&lt;p&gt;Реализация графов как матрицы поможет с уменьшением размеров хранимых данных и для простых операций может оказаться быстрым решением. Подход поможет связать любые виды данных, но сложный поиск по графу будет проблематичен. При этом, если в проекте нужны динамические графы, придется либо постоянно пересчитывать и обновлять матрицы, либо отказаться от идеи. Плюс, желательно понимать как создаются матрицы смежности и матрицы инцидентности.&lt;/p&gt;
+
+&lt;h3 id=&quot;решение-22-представляем-граф-в-виде-списка&quot;&gt;Решение 2.2: представляем граф в виде списка&lt;/h3&gt;
+
+&lt;p&gt;Если вариант с матрицами не подходит, обращаемся к старым добрым спискам. Для чего стоит рассказать о двух подходах.&lt;/p&gt;
+
+&lt;h4 id=&quot;вариант-1-превращаем-матрицу-смежности-в-список&quot;&gt;Вариант 1: превращаем матрицу смежности в список&lt;/h4&gt;
+
+&lt;p&gt;Логическое продолжение матрицы смежности.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-matrix-fill-full.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;Матрица смежности, которую получили ранее&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Идея в том, что не нужно делать матрицу, если можно сделать список, где каждый элемент будет говорить с какими другими нодами связана конкретная нода. Т.е. список будет содержать каждую строку матрицы как отдельный элемент.&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-to-list-from-matrix.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;В результате, вместо матрицы, получаем список из элементов, в которых показано какие ноды связаны с искомой нодой&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Такой список называют &lt;a href=&quot;https://en.wikipedia.org/wiki/Adjacency_list&quot;&gt;списком смежности&lt;/a&gt;, и так как это частный случай матрицы смежности, то дальше вариант не будем рассматривать. Вместо этого поговорим о втором подходе.&lt;/p&gt;
+
+&lt;h4 id=&quot;вариант-2-список-ребер&quot;&gt;Вариант 2: список ребер&lt;/h4&gt;
+
+&lt;p&gt;Если работали с графовыми библиотеками, то этот вариант уже встречали. Идея в том, чтобы сделать список ребер в виде кортежа (tuple). При этом, никто не мешает добавить второй список уже для нод, если нужен полноценный объект ноды, а не только id.&lt;/p&gt;
+
+&lt;p&gt;В качестве примера можно открыть первую попавшуюся библиотеку для работы с графами, напримре &lt;a href=&quot;https://jgrapht.org/guide/UserOverview&quot;&gt;jgrapht&lt;/a&gt; для джавы:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nc&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;URI&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DefaultEdge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DefaultDirectedGraph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;DefaultEdge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;no&quot;&gt;URI&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;google&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;URI&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://www.google.com&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;URI&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wikipedia&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;URI&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://www.wikipedia.org&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;URI&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jgrapht&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;URI&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://www.jgrapht.org&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// add the vertices&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addVertex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;google&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addVertex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wikipedia&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addVertex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jgrapht&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Каждое ребро - tuple из двух нод: {node_from, node_to}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addEdge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jgrapht&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wikipedia&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addEdge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;google&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jgrapht&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addEdge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;google&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wikipedia&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addEdge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wikipedia&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;google&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;При этом, если нужно указать что за связь, tuple можно расширить до трех элементов: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;{node_from, how, node_to}&lt;/code&gt; (чаще встречается как &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;субъект, предикат, объект&lt;/code&gt;). Например, в случае возраста можно использовать tuple &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;{ Alice, age, 25 }&lt;/code&gt;, где &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Alice&lt;/code&gt; будет нодой, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;25&lt;/code&gt; будет нодой, а ребро будет обозначать возраст. Подробнее можно почитать в &lt;a href=&quot;https://dataintensive.net&quot;&gt;DDIA, Chapter 2, part 2.3&lt;/a&gt; (первая редакция).&lt;/p&gt;
+
+&lt;h4 id=&quot;переносим-список-в-популярные-базы&quot;&gt;Переносим список в «популярные» базы&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Логика такая: делаем таблицу &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;nodes&lt;/code&gt; и &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;edges&lt;/code&gt;. После чего, используя рекурсивные запросы ищем нужные ноды. Подробно &lt;a href=&quot;https://www.dylanpaulus.com/posts/postgres-is-a-graph-database/&quot;&gt;описано в этой статье&lt;/a&gt;. А подробнее о рекурсивных функциях лучше &lt;a href=&quot;https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-RECURSIVE&quot;&gt;почитать в документации&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Второй вариант – использовать &lt;a href=&quot;https://pgrouting.org&quot;&gt;pgRouting&lt;/a&gt;, который изначально создали для поиска гео маршрута, но так как данная задача – частный случай прохода графа, можно искать не только маршрут на картах, но и &lt;a href=&quot;https://www.crunchydata.com/blog/six-degrees-of-kevin-bacon-postgres-style&quot;&gt;актеров фильмов, что описывается в статье&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Если в наличии доступ к кабанчику, то еще раз сошлюсь на &lt;a href=&quot;https://dataintensive.net&quot;&gt;DDIA, Chapter 2, part 2.3&lt;/a&gt; (первая редакция).&lt;/p&gt;
+
+&lt;p&gt;Если решите работать со списком смежности, могу посоветовать статью, где &lt;a href=&quot;https://schinckel.net/2014/11/27/postgres-tree-shootout-part-2%3A-adjacency-list-using-ctes/&quot;&gt;рассказывается как с помощью представления графа как списка смежности и CTE работать с графами в постгресе&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Redis&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Сразу скажу, вариант костыльный, но озвучить стоит. Для решения проблемы поможет пересечение множеств и &lt;a href=&quot;https://redis.io/docs/latest/commands/?group=set&quot;&gt;SET типу данных в редисе&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Выглядит это так: для каждого SET создаем список связанных нод, после чего ищем необходимую информацию. Если взять в пример граф выше и представить, что так связаны продукты в магазине, то так будет выглядеть заполнение графа:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt; SADD node:product:1 &quot;node:product:1&quot; &quot;node:product:2&quot; &quot;node:product:3&quot;
+&amp;gt; SADD node:product:2 &quot;node:product:1&quot; &quot;node:product:3&quot; &quot;node:product:4&quot;
+&amp;gt; SADD node:product:3 &quot;node:product:1&quot; &quot;node:product:2&quot; &quot;node:product:4&quot;
+&amp;gt; SADD node:product:4 &quot;node:product:2&quot; &quot;node:product:3&quot; &quot;node:product:5&quot;
+&amp;gt; SADD node:product:5 &quot;node:product:4&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Для получения связанных нод для конкретной можно воспользоваться &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SMEMBERS node:product:1&lt;/code&gt;. В случае, если нужно решить проблему связанного товара с товарами из корзины (пересечение множества), можно воспользоваться &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SINTER node:product:2 node:product:5&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;image&quot;&gt;
+  &lt;img src=&quot;/public/images/questions/2024-12-09-how-to-store-graph-without-neo4j/graph-in-redis.jpeg&quot; alt=&quot;&quot; /&gt;
+  &lt;figcaption&gt;&lt;p&gt;В случае, когда надо найти товар который можно предложить для пользователя, который хочет купить product:2 и product:5 можно воспользоваться пересечением множеств и получить product:4&lt;/p&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;MongoDB&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Можно воспользоваться статьей, где показывается, &lt;a href=&quot;https://pureinsights.com/blog/2023/implementing-knowledge-graphs-with-mongodb/&quot;&gt;как повторить запросы из neo4j в монге&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Статья уже о &lt;a href=&quot;https://medium.com/@lewis.won/how-to-query-structured-data-as-graph-from-elasticsearch-b948ec5ba34f&quot;&gt;работе со списком tuples в эластике&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;плюсы-списочного-представления&quot;&gt;Плюсы списочного представления&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Можно реализовать в любой базе данных и не придется ничего отдельного ставить. Т.е. инфраструктурные косты снижаются, а менеджеры довольны;&lt;/li&gt;
+  &lt;li&gt;Работает с динамическими графами. Т.е. можно добавлять и удалять ноды, менять связи, при этом не придется пересчитывать значения или ломать схему в бд;&lt;/li&gt;
+  &lt;li&gt;Списки проще объяснить людям, чем матрицы смежности и инцидентности, т.е. когнитивная нагрузка будет меньше, а требования к знанию теории графов снижаются;&lt;/li&gt;
+  &lt;li&gt;Подойдет, когда надо быстро проверить гипотезу, а усложнять систему нет возможности. Т.е. реализуем список в условном постгресе, после, если нужны будут новые характеристики, переезжаем в графовую базу данных;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;минусы-списочного-представления&quot;&gt;Минусы списочного представления&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Если нужен конкретный язык запросов для работы с графами (&lt;a href=&quot;https://en.wikipedia.org/wiki/Cypher_(query_language)&quot;&gt;cypher&lt;/a&gt; или &lt;a href=&quot;https://en.wikipedia.org/wiki/Gremlin_(query_language)&quot;&gt;gremlin&lt;/a&gt;), то вариант не подойдет. Т.е. сложные запросы (какой кофе любит актер с карими глазами, чаще снимающийся в детективах) будет сложно провернуть. Но для подобных товаров и простого поиска вариант рабочий;&lt;/li&gt;
+  &lt;li&gt;Хоть инфраструктурные косты снижаются, сложность перекладывается на разработчиков – придется реализовывать руками хранение графов, а запросы могут потребовать определенных навыков (заставить джуна обновлять рекурсивные запросы в постгресе может оказаться ошибочным решением);&lt;/li&gt;
+  &lt;li&gt;Больше риск, чем минус: могут возникнуть проблемы с индексами и размером таблиц/списков. Из-за этого перфоманс может страдать;&lt;/li&gt;
+  &lt;li&gt;Хранение графов в списках не такое компактное как в матрицах. Если беспокоитесь о размере данных, возможный минус;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;выводы-по-спискам&quot;&gt;Выводы по спискам&lt;/h4&gt;
+
+&lt;p&gt;Имхо – лучший вариант для работы с динамическими графами. Сработает для хранения слабосвязанных данных. Для сложного поиска сработает только с напильником. Не требует глубоких знаний в теории графов и дополнительных расчетов матриц. С другой стороны, возникают проблемы со сложными запросами + реализация хранения графов сложная, особенно для разработчиков, которые подобным не занимались.&lt;/p&gt;
+
+&lt;h2 id=&quot;решение-3-расширяем-рабочую-базу-данных&quot;&gt;Решение 3: расширяем рабочую базу данных&lt;/h2&gt;
+
+&lt;p&gt;Логическое продолжение второго варианта: зачем заморачиваться и реализовывать графы в базе, если можно сделать пакет, который будет делать тоже самое, только создавай нужные графы. Главная проблема – установить библиотеку и молиться, что поддержка решения закончится позже поддержки базы данных.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://age.apache.org&quot;&gt;Apache AGE&lt;/a&gt; – слой над постгресом, который предоставляет cypher для поиска данных;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.puppygraph.com/getting-started/querying-postgresql-data-as-a-graph/&quot;&gt;PuppyGraph&lt;/a&gt; – еще одна надстройка над постгресом, при этом, может нарисовать граф данных;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Redis&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/RedisGraph/RedisGraph&quot;&gt;RedisGraph&lt;/a&gt; – если нужен cypher для редиса. Существует пример, как &lt;a href=&quot;https://redis.io/learn/howtos/redisgraph/using-ruby&quot;&gt;дружить проект с ruby&lt;/a&gt;;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;MongoDB&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/datablend/blueprints-mongodb-graph&quot;&gt;Tinkerpop blueprints для mongoDB&lt;/a&gt; – реализация &lt;a href=&quot;https://github.com/tinkerpop/blueprints&quot;&gt;Graph Model Interface&lt;/a&gt; для монги. Не уверен, что библиотека работает на конец 2024 года;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;плюсы-решения-2&quot;&gt;Плюсы решения&lt;/h3&gt;
+
+&lt;p&gt;-  Полноценная графовая модель с поддержкой графовых языков запросов. Т.е. можно делать запросы любой сложности. При этом, не придется ставить отдельную нонейм базу данных;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Условный cypher изучить проще, чем мучаться с рекурсивными запросами или пересечением сетов;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;минусы-решения-2&quot;&gt;Минусы решения&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Сильно зависит от поддержки библиотеки;&lt;/li&gt;
+  &lt;li&gt;Придется собирать базу с плагинами, что инфраструктурно может оказаться дорогим удовольствием. Плюс, не каждый cloud провайдер поддерживает подобное из коробки, поэтому, придется самостоятельно поднимать инстанс базы и мучаться с поддержкой (это люди и ресурсы);&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;итоги-2&quot;&gt;Итоги&lt;/h3&gt;
+
+&lt;p&gt;Ленивый вариант для разработчиков, так как не придется заморачиваться с хранением и сложными запросами. При этом, в каждом из решений автоматом идет нормальный язык графовых запросов, которые помогут для сложных запросов. С другой стороны, цена, запары и риски перекладываются на инфраструктуру: придется собирать базу с библиотеками, не каждый клауд провайдер поддерживает подобное решений и так далее. Решение «когда другие варианты не помогли», т.е. если выбирать между графовой бд и подобным решением, стоит сначала посмотреть, существуют ли варианты на рынке под нужные требования.&lt;/p&gt;
+
+&lt;h2 id=&quot;дополнительные-ссылки&quot;&gt;Дополнительные ссылки&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;[en] Лонгрид (замучаетесь скролить), где &lt;a href=&quot;https://mihai.page/testing-graph-databases/&quot;&gt;автор сравнивает шесть реализаций графовых бд&lt;/a&gt; (включая neo4j) и делится результатами по перфомансу с графиками и примерами запросов (возможно что-то пропустил, так как дочитать не успел). Если ищите сравнение – мастхэв статья;&lt;/li&gt;
+  &lt;li&gt;[en] В википедии &lt;a href=&quot;https://en.wikipedia.org/wiki/Graph_database&quot;&gt;можно найти еще больший список графовых бд&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;[en] Запись выступления, где рассказывается &lt;a href=&quot;https://www.youtube.com/watch?v=YB723cp9jgM&quot;&gt;историческая справка о neo4j&lt;/a&gt;;&lt;/li&gt;
+  &lt;li&gt;[en] Если хотите глубже разобраться в neo4j &lt;a href=&quot;https://medium.com/@martin-jurran/everything-you-need-to-know-about-graph-databases-neo4j-b9154f57dad0&quot;&gt;мастхэв ссылка&lt;/a&gt;, так как, кроме информации о работе базы и примеров запросов можно найти матрицу стейкхолдеров neo4j;&lt;/li&gt;
+  &lt;li&gt;[en/ru] Уже упоминал кабанчика в ответете. Советую посмотреть &lt;a href=&quot;https://dataintensive.net&quot;&gt;Chapter 2, part 2.3&lt;/a&gt; первой редакции. Автор объясняет что такое графовая структура данных, как ее хранить и какие варианты реализации существуют (включая tuples и Datalog и RDF);&lt;/li&gt;
+  &lt;li&gt;[en] Статья о том, &lt;a href=&quot;https://medium.com/basecs/from-theory-to-practice-representing-graphs-cfd782c5be38&quot;&gt;как мапится граф другие структуры данных&lt;/a&gt;. Если хотите глубже разобраться с матрицами смежности/инцидентности – стоит обратить внимание;&lt;/li&gt;
+  &lt;li&gt;[en] Менее подробная статья, но &lt;a href=&quot;https://www.geeksforgeeks.org/graph-and-its-representations/&quot;&gt;фокусируется только на матрицах и списках смежности&lt;/a&gt;, чего хватает в 80% случаев;&lt;/li&gt;
+  &lt;li&gt;[ru] Еще одна статья, где &lt;a href=&quot;https://habr.com/ru/articles/570612/&quot;&gt;описываются виды представления графов из теории графов&lt;/a&gt;. Кроме русского языка, от остальных статей отличается тем, что автор объясняет что потеряете или приобретете по памяти при хранении графов;&lt;/li&gt;
+  &lt;li&gt;[en/ru] Если хотите хардкорно разобраться с теорией графов, могу посоветовать две книги. Первая – &lt;a href=&quot;https://diestel-graph-theory.com&quot;&gt;Reinhard Diestel, graph theory&lt;/a&gt;. Вторая – &lt;a href=&quot;https://www.labirint.ru/books/628924/&quot;&gt;А.В. Омельченко, теория графов&lt;/a&gt;. Первую можно найти в pdf, вторую нашел только печатную;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Как «предсказать» какой система окажется в будущем</title>
